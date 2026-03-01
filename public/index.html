@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClawSkin — Pixel Agent Skin Engine</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>🐾</text></svg>">
+</head>
+<body>
+  <div class="pixel-grid-overlay"></div>
+
+  <!-- ═══ Hero ═══ -->
+  <section class="hero">
+    <div class="hero-badge">🐾 OpenClaw Ecosystem</div>
+    <h1 class="hero-title">ClawSkin</h1>
+    <p class="hero-subtitle">Give your AI agent a face, an office, and a daily routine.<br>Pixel companion powered by Canvas 2D.</p>
+
+    <!-- Live Demo -->
+    <div class="game-container">
+      <canvas id="game-canvas" class="game-canvas" width="720" height="400"></canvas>
+      <div class="game-status" id="agent-status">🏢 Office</div>
+    </div>
+
+    <!-- Scene Picker -->
+    <div class="controls-bar">
+      <div id="scene-picker" style="display:flex;gap:0.5rem;"></div>
+      <button class="ctrl-btn" onclick="window._charEditor.toggle(); if(window._charEditor.visible) document.getElementById('character-editor').scrollIntoView({behavior:'smooth',block:'center'})">🎨 Customize</button>
+    </div>
+  </section>
+
+  <!-- ═══ Features ═══ -->
+  <section class="section">
+    <h2 class="section-title">✨ Features</h2>
+    <p class="section-desc">Everything you need to bring your AI agent to life.</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <div class="feature-title">Character Creator</div>
+        <div class="feature-desc">5 skin tones, 5 hairstyles, 5 outfits, accessories, and pets. Mix and match to create your unique pixel agent.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏠</div>
+        <div class="feature-title">Multiple Scenes</div>
+        <div class="feature-desc">Cozy office, hacker den, or warm café — each with ambient animations, particles, and mood lighting.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔄</div>
+        <div class="feature-title">Live State Sync</div>
+        <div class="feature-desc">Connect to OpenClaw Gateway via WebSocket. Your pixel agent reflects real AI status — typing, thinking, sleeping.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💬</div>
+        <div class="feature-title">Speech Bubbles</div>
+        <div class="feature-desc">Typewriter-effect dialogue bubbles show what your agent is working on. Thought bubbles for thinking mode.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🐱</div>
+        <div class="feature-title">Pixel Pets</div>
+        <div class="feature-desc">Add a cat, dog, or robot companion that hangs out with your agent. Because everyone needs a sidekick.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Customizer ═══ -->
+  <section class="section">
+    <div>
+      <h2 class="section-title">🎨 Customize Your Agent</h2>
+      <p class="section-desc">Click options below to customize in real-time. Changes are reflected instantly in the demo above.</p>
+      <div id="character-editor"></div>
+    </div>
+  </section>
+
+  <!-- ═══ Get Started ═══ -->
+  <section class="section">
+    <h2 class="section-title">🚀 Get Started</h2>
+    <p class="section-desc">Two ways to run ClawSkin locally. Pick what works for you.</p>
+    <div class="feature-grid">
+      <div class="feature-card" style="border-color:rgba(0,255,136,0.25);">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">npx (Quickest)</div>
+        <div class="feature-desc">
+          One command, zero install. Starts the app and auto-connects to your local OpenClaw Gateway.<br><br>
+          <code style="font-size:0.75rem;background:rgba(0,240,255,0.08);padding:2px 6px;border-radius:4px;">npx clawskin</code><br><br>
+          <strong style="color:var(--accent-green);">Best for:</strong> Quick start, trying it out.
+        </div>
+      </div>
+      <div class="feature-card" style="border-color:rgba(0,240,255,0.25);">
+        <div class="feature-icon">💻</div>
+        <div class="feature-title">Clone & Run</div>
+        <div class="feature-desc">
+          Clone the repo for full control. Great if you want to customize scenes or contribute.<br><br>
+          <code style="font-size:0.75rem;background:rgba(0,240,255,0.08);padding:2px 6px;border-radius:4px;">git clone → npm start</code><br><br>
+          <strong style="color:var(--accent-cyan);">Best for:</strong> Daily use, customization, contributing.
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:2.5rem;">
+      <p style="color:var(--text-secondary);font-size:0.85rem;">
+        Requires Node.js · Zero npm dependencies · Auto-connects to OpenClaw Gateway
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ Requirements ═══ -->
+  <section class="section" style="padding-top:0;">
+    <h2 class="section-title">📋 What You Need</h2>
+    <div class="feature-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+      <div class="feature-card">
+        <div class="feature-icon">🧩</div>
+        <div class="feature-title">OpenClaw Gateway</div>
+        <div class="feature-desc">Any running OpenClaw instance (v1.0+). <a href="https://docs.openclaw.ai" target="_blank" style="color:var(--accent-cyan);">Install OpenClaw →</a></div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔐</div>
+        <div class="feature-title">Auth Token</div>
+        <div class="feature-desc">If your Gateway has auth enabled, grab the token from <code style="font-size:0.7rem;">~/.openclaw/openclaw.json</code> or run <code style="font-size:0.7rem;">openclaw dashboard</code></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Footer ═══ -->
+  <footer class="footer">
+    <p>
+      <strong style="font-family:'Press Start 2P',monospace;font-size:0.7rem;color:var(--accent-cyan);">ClawSkin</strong>
+      — Part of the <a href="https://github.com/clawlabz/openclaw" target="_blank">OpenClaw</a> ecosystem
+    </p>
+    <p style="margin-top:0.5rem;">
+      Built with Canvas 2D · Zero Dependencies · <a href="https://github.com/clawlabz/clawskin" target="_blank">⭐ Star on GitHub</a>
+    </p>
+  </footer>
+
+  <!-- ═══ Scripts ═══ -->
+  <script src="js/sprites/SpriteGenerator.js"></script>
+  <script src="js/character/AnimationManager.js"></script>
+  <script src="js/character/BubbleManager.js"></script>
+  <script src="js/character/CharacterSprite.js"></script>
+  <script src="js/state/DemoMode.js"></script>
+  <script src="js/state/AgentStateSync.js"></script>
+  <script src="js/scenes/OfficeScene.js"></script>
+  <script src="js/scenes/HackerScene.js"></script>
+  <script src="js/scenes/CafeScene.js"></script>
+  <script src="js/ui/CharacterEditor.js"></script>
+  <script src="js/ui/ScenePicker.js"></script>
+  <script src="js/app/AgentStateMapper.js"></script>
+  <script src="js/app/AgentSlot.js"></script>
+  <script src="js/pets/Pet.js"></script>
+  <script src="js/pets/PetManager.js"></script>
+  <script src="js/game.js"></script>
+  <script>
+    // ── Rich Demo: 2 agents + desks + 3 pets ──
+    document.addEventListener('DOMContentLoaded', () => {
+      const canvas = document.getElementById('game-canvas');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+      ctx.imageSmoothingEnabled = false;
+
+      const spriteGen = new SpriteGenerator();
+
+      // Scenes
+      const scenes = [
+        new OfficeScene(canvas, ctx, spriteGen),
+        new HackerScene(canvas, ctx, spriteGen),
+        new CafeScene(canvas, ctx, spriteGen),
+      ];
+      scenes.forEach(s => s.init());
+      let currentScene = scenes[0];
+
+      // ── 2 Demo Agents ──
+      const agentConfigs = [
+        { skinColor: '#FFD5C2', hairType: 0, hairColor: '#333333', outfitType: 'hoodie', outfitColorIdx: 0, accessory: 'glasses' },
+        { skinColor: '#C68642', hairType: 2, hairColor: '#1a1a2e', outfitType: 'suit', outfitColorIdx: 2, accessory: 'headphones' },
+      ];
+      const agentNames = ['Alice', 'Bob'];
+
+      // Create AgentSlots
+      const agents = agentConfigs.map((cfg, i) => {
+        // Temporarily override saved configs so demo always looks consistent
+        const slot = new AgentSlot({
+          agentId: `demo-${i}`,
+          label: agentNames[i],
+          name: agentNames[i],
+          index: i,
+          x: 0, y: 0,
+          showNameTag: true,
+        });
+        slot.character.updateConfig(cfg);
+        slot._otherAgents = []; // will set after both created
+        return slot;
+      });
+      // Cross-reference for social wandering
+      agents.forEach(a => { a._otherAgents = agents; });
+
+      // ── 3 Pets: cat, dog, bird ──
+      const petManager = new PetManager(spriteGen);
+      petManager.setSceneBounds(W, H);
+      petManager.clearPets();
+      petManager.addPet('cat', '#FFFFFF');
+      petManager.addPet('dog');
+      petManager.addPet('bird', '#4FC3F7');
+
+      // ── Demo State Cycling ──
+      const demoStates = ['idle', 'thinking', 'typing', 'executing', 'browsing', 'idle', 'typing', 'idle'];
+      const demoBubbles = [null, 'Analyzing data...', 'Writing code...', null, 'Searching docs...', null, 'Fixing bug...', null];
+      const agentTimers = [0, 0];
+      const agentStateIdx = [0, 3]; // stagger the two agents
+      const stateIntervals = [3500, 4200]; // different pacing
+
+      function cycleDemoState(agentIdx) {
+        const idx = agentStateIdx[agentIdx];
+        const state = demoStates[idx];
+        const bubble = demoBubbles[idx];
+        const slot = agents[agentIdx];
+
+        slot.stateMapper.currentState = state;
+        slot.character.setState(state);
+        if (bubble) {
+          const type = state === 'thinking' ? 'thought' : 'speech';
+          slot.character.showBubble(bubble, type, stateIntervals[agentIdx] - 500);
+        }
+        agentStateIdx[agentIdx] = (idx + 1) % demoStates.length;
+      }
+
+      // Init first states
+      cycleDemoState(0);
+      cycleDemoState(1);
+
+      // ── Render Loop (same pipeline as ClawSkinApp) ──
+      let lastTime = performance.now();
+
+      function loop() {
+        const now = performance.now();
+        const dt = now - lastTime;
+        lastTime = now;
+
+        // Update
+        currentScene.update(dt);
+        for (const slot of agents) {
+          slot.update(dt);
+        }
+        petManager.update(dt, agents, currentScene.obstacles || []);
+
+        // Demo state cycling
+        for (let i = 0; i < agents.length; i++) {
+          agentTimers[i] += dt;
+          if (agentTimers[i] >= stateIntervals[i]) {
+            agentTimers[i] = 0;
+            cycleDemoState(i);
+          }
+        }
+
+        // ── Render (4-phase pipeline) ──
+        ctx.clearRect(0, 0, W, H);
+        ctx.imageSmoothingEnabled = false;
+
+        // Layer 0: Scene background
+        currentScene.render(ctx);
+
+        // Workstation layout
+        const stations = currentScene.getWorkstations?.(agents.length) || [];
+
+        // Assign stations to agents
+        for (let i = 0; i < agents.length; i++) {
+          const s = stations[i];
+          if (!s) continue;
+          const slot = agents[i];
+          slot.station = s;
+          slot._scene = currentScene;
+          if (s.charScale) slot.character.scale = s.charScale;
+          if (!slot.isWandering && !slot._isReturning) {
+            slot.character.x = s.charX;
+            if (!slot._manualY) slot.character.y = s.charY;
+          }
+        }
+
+        // Phase 1: Chairs
+        for (const s of stations) {
+          currentScene.renderChair(ctx, s);
+        }
+
+        // Phase 2: Characters (Y-sorted)
+        const sorted = [...agents].sort((a, b) => a.character.y - b.character.y);
+        for (const slot of sorted) {
+          slot.render(ctx);
+        }
+
+        // Phase 3: Desks + monitors
+        for (let i = 0; i < stations.length; i++) {
+          const state = agents[i]?.stateMapper.currentState || 'idle';
+          currentScene.renderDesk(ctx, stations[i], state);
+        }
+
+        // Phase 4: Pets
+        petManager.render(ctx);
+
+        // Phase 5: Name tags
+        for (const slot of agents) {
+          slot.renderNameTag(ctx);
+        }
+
+        requestAnimationFrame(loop);
+      }
+
+      loop();
+
+      // ── Scene Picker ──
+      window._scenePicker = new ScenePicker(scenes, (scene, idx) => {
+        currentScene = scenes[idx];
+        currentScene.init();
+        // Update status label
+        document.getElementById('agent-status').textContent = currentScene.label;
+      });
+      window._scenePicker.render('scene-picker');
+
+      // ── Character Editor (edits first agent) ──
+      window._charEditor = new CharacterEditor(agents[0].character, 'character-editor');
+      window._charEditor.onChange = (cfg) => {
+        agents[0].updateConfig(cfg);
+      };
+    });
+  </script>
+</body>
+</html>

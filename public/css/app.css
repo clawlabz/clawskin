@@ -1,0 +1,379 @@
+/* ═══════════════════════════════════════════════════
+   ClawSkin App — Product Page Styles
+   ═══════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;600;700&display=swap');
+
+:root {
+  --bg-primary: #0a0a1a;
+  --bg-secondary: #12122a;
+  --bg-card: #1a1a35;
+  --text-primary: #e0e0f0;
+  --text-secondary: #8888aa;
+  --accent-cyan: #00f0ff;
+  --accent-purple: #b44aff;
+  --accent-pink: #ff44aa;
+  --accent-green: #00ff88;
+  --accent-red: #ff4466;
+  --accent-yellow: #ffcc00;
+  --border: rgba(255,255,255,0.08);
+  --glow-cyan: 0 0 20px rgba(0,240,255,0.3);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ═══ App Layout ═══ */
+.app-wrapper {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  width: 100%;
+  flex: 1;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.app-logo {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.1rem;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.app-nav {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.app-nav a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+.app-nav a:hover { color: var(--accent-cyan); }
+
+/* ═══ Mode Badge ═══ */
+.mode-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  padding: 3px 10px;
+  border-radius: 100px;
+  display: inline-block;
+}
+.mode-live {
+  background: rgba(0,255,136,0.1);
+  border: 1px solid rgba(0,255,136,0.3);
+  color: var(--accent-green);
+}
+.mode-demo {
+  background: rgba(180,74,255,0.1);
+  border: 1px solid rgba(180,74,255,0.3);
+  color: var(--accent-purple);
+}
+
+/* ═══ Main Stage ═══ */
+.app-stage {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.stage-canvas-area {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid var(--border);
+  box-shadow: var(--glow-cyan), inset 0 0 60px rgba(0,0,0,0.5);
+  background: var(--bg-secondary);
+}
+
+.app-canvas {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.stage-status {
+  position: absolute;
+  bottom: 10px;
+  left: 14px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: var(--accent-green);
+  background: rgba(0,0,0,0.6);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.stage-mode {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+}
+
+/* ═══ Controls ═══ */
+.app-controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.ctrl-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ctrl-btn:hover { border-color: var(--accent-cyan); box-shadow: var(--glow-cyan); }
+.ctrl-btn.active { border-color: var(--accent-cyan); background: rgba(0,240,255,0.1); color: var(--accent-cyan); }
+
+.scene-btn {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Space Mono', monospace;
+}
+.scene-btn:hover { border-color: var(--accent-purple); }
+.scene-btn.active { border-color: var(--accent-purple); background: rgba(180,74,255,0.1); color: var(--accent-purple); }
+
+/* ═══ Connection Panel ═══ */
+.conn-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.conn-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.conn-status-bar:hover { background: rgba(255,255,255,0.02); }
+
+.conn-status-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.conn-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-connected { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+.dot-connecting { background: var(--accent-yellow); animation: pulse 1s infinite; }
+.dot-error { background: var(--accent-red); }
+.dot-disconnected { background: var(--text-secondary); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.conn-status-text {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+}
+
+.conn-toggle {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.conn-form {
+  padding: 0 1rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.conn-field {
+  margin-top: 0.75rem;
+}
+
+.conn-field label {
+  display: block;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.3rem;
+}
+
+.conn-optional { opacity: 0.6; }
+
+.conn-field input[type="text"],
+.conn-field input[type="password"] {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.conn-field input:focus { border-color: var(--accent-cyan); }
+.conn-field input:disabled { opacity: 0.5; }
+
+.conn-hint {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+  opacity: 0.7;
+}
+.conn-hint code {
+  background: rgba(0,240,255,0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.6rem;
+}
+
+.conn-actions {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.conn-btn {
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border: 1px solid;
+  transition: all 0.2s;
+}
+.conn-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.conn-btn-connect {
+  background: rgba(0,240,255,0.1);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+.conn-btn-connect:hover:not(:disabled) { background: rgba(0,240,255,0.2); }
+.conn-btn-disconnect {
+  background: rgba(255,68,102,0.1);
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+.conn-btn-disconnect:hover { background: rgba(255,68,102,0.2); }
+
+.conn-auto-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+
+/* ═══ Side Panel (Character Editor) ═══ */
+.app-sidebar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* ═══ Editor Panel (reuse from style.css) ═══ */
+.editor-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; max-height: 70vh; overflow-y: auto; }
+.editor-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0,240,255,0.05); border-bottom: 1px solid var(--border); font-family: 'Press Start 2P', monospace; font-size: 0.65rem; color: var(--accent-cyan); }
+.editor-close { background: none; border: none; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer; }
+.editor-body { padding: 1rem; }
+.editor-row { margin-bottom: 0.75rem; }
+.editor-row label { display: block; font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.3rem; }
+.color-swatches { display: flex; gap: 5px; flex-wrap: wrap; }
+.swatch { width: 26px; height: 26px; border-radius: 5px; border: 2px solid transparent; cursor: pointer; transition: all 0.15s; }
+.swatch:hover { transform: scale(1.15); }
+.swatch.active { border-color: var(--accent-cyan); box-shadow: var(--glow-cyan); }
+.btn-group { display: flex; gap: 3px; flex-wrap: wrap; }
+.ed-btn { padding: 3px 7px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-secondary); color: var(--text-secondary); font-size: 0.65rem; font-family: 'Space Mono', monospace; cursor: pointer; }
+.ed-btn:hover { border-color: var(--accent-purple); color: var(--text-primary); }
+.ed-btn.active { border-color: var(--accent-cyan); background: rgba(0,240,255,0.1); color: var(--accent-cyan); }
+.editor-actions { display: flex; gap: 6px; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+.ed-action-btn { flex: 1; padding: 0.4rem; border: 1px solid var(--border); border-radius: 5px; background: var(--bg-secondary); color: var(--text-primary); font-size: 0.7rem; cursor: pointer; }
+.ed-action-btn:hover { border-color: var(--accent-green); }
+.editor-toast { position: fixed; bottom: -50px; left: 50%; transform: translateX(-50%); padding: 0.5rem 1rem; background: var(--bg-card); border: 1px solid var(--accent-green); border-radius: 8px; color: var(--accent-green); font-family: 'Space Mono', monospace; font-size: 0.75rem; transition: bottom 0.3s ease; z-index: 1000; }
+.editor-toast.show { bottom: 24px; }
+
+/* ═══ Footer ═══ */
+.app-footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+.app-footer a { color: var(--accent-cyan); text-decoration: none; }
+
+/* ═══ Responsive ═══ */
+@media (max-width: 768px) {
+  .app-sidebar { grid-template-columns: 1fr; }
+  .app-controls { flex-direction: column; align-items: stretch; }
+  .conn-actions { flex-direction: column; }
+}
+
+/* ═══ Scrollbar ═══ */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--bg-card); border-radius: 3px; }
+
+/* ═══ Agent List (multi-agent badges) ═══ */
+.stage-agents {
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  max-width: 70%;
+}
+
+.agent-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  padding: 2px 8px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 100px;
+  color: var(--text-primary);
+  white-space: nowrap;
+}

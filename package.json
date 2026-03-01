@@ -1,0 +1,27 @@
+{
+  "name": "clawskin",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Pixel Agent Skin Engine \u2014 Procedural 32\u00d732 character generator with scenes, animations & customization",
+  "keywords": [
+    "pixel",
+    "agent",
+    "skin",
+    "character",
+    "avatar"
+  ],
+  "author": "ClawLabz",
+  "license": "MIT",
+  "homepage": "https://github.com/clawlabz/clawskin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clawlabz/clawskin.git"
+  },
+  "scripts": {
+    "start": "node serve.cjs",
+    "start:silent": "node serve.cjs --no-open"
+  },
+  "bin": {
+    "clawskin": "./serve.cjs"
+  }
+}

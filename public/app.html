@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>ClawSkin</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>🐾</text></svg>">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+    /* Fallback if Google Fonts is unreachable (offline/air-gapped) */
+    @font-face {
+      font-family: 'Press Start 2P Fallback';
+      src: local('Courier New'), local('Courier'), local('monospace');
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a1a; font-family: 'Press Start 2P', 'Press Start 2P Fallback', monospace; }
+
+    /* ── Fullscreen Canvas ── */
+    #app-canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      cursor: pointer;
+    }
+
+    /* ── Pixel HUD (KOF style) ── */
+    .hud { position: fixed; font-family: 'Press Start 2P', monospace; z-index: 10; pointer-events: none; }
+    .hud * { pointer-events: auto; }
+
+    /* Top-left: logo + mode */
+    .hud-top-left {
+      top: 12px; left: 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .hud-logo {
+      font-size: 10px;
+      color: #00f0ff;
+      text-shadow: 0 0 8px rgba(0,240,255,0.5), 2px 2px 0 #0a0a1a;
+      letter-spacing: 2px;
+    }
+    .hud-mode {
+      font-size: 7px;
+      padding: 2px 8px;
+      border: 1px solid;
+      border-radius: 2px;
+    }
+    .hud-mode.live { color: #00ff88; border-color: #00ff88; text-shadow: 0 0 6px rgba(0,255,136,0.5); }
+    .hud-mode.demo { color: #b44aff; border-color: #b44aff; }
+
+    /* Top-right: connection + settings */
+    .hud-top-right {
+      top: 12px; right: 16px;
+      display: flex; gap: 8px; align-items: center;
+    }
+    .hud-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      padding: 4px 10px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #aaa;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .hud-btn:hover { border-color: #00f0ff; color: #00f0ff; }
+
+    /* Bottom-center: agent roster */
+    .hud-bottom {
+      bottom: 12px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 6px; align-items: center;
+    }
+    .hud-agent {
+      font-size: 6px;
+      padding: 3px 8px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #ccc;
+      display: flex; align-items: center; gap: 5px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .hud-agent:hover { border-color: #00f0ff; }
+    .hud-agent.active { border-color: #ffcc00; color: #ffcc00; }
+    .hud-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .hud-dot.idle { background: #00ff88; }
+    .hud-dot.typing { background: #00f0ff; animation: blink 0.5s infinite; }
+    .hud-dot.thinking { background: #ffcc00; animation: blink 1s infinite; }
+    .hud-dot.executing { background: #b44aff; animation: blink 0.3s infinite; }
+    .hud-dot.browsing { background: #00f0ff; }
+    .hud-dot.error { background: #ff4466; }
+    .hud-dot.sleeping { background: #555; }
+
+    @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+    /* Bottom-left: pets button */
+    .hud-bottom-left {
+      bottom: 12px; left: 16px;
+    }
+
+    /* ── Connection Panel (overlay) ── */
+    .conn-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      display: none; justify-content: center; align-items: center;
+      z-index: 100;
+      font-family: 'Press Start 2P', monospace;
+    }
+    .conn-overlay.show { display: flex; }
+    .conn-box {
+      background: #12122a;
+      border: 2px solid #00f0ff;
+      box-shadow: 0 0 30px rgba(0,240,255,0.2);
+      padding: 24px;
+      width: 380px;
+      max-width: 90vw;
+    }
+    .conn-box h2 {
+      font-size: 10px; color: #00f0ff; margin-bottom: 16px;
+      text-shadow: 0 0 8px rgba(0,240,255,0.4);
+    }
+    .conn-box .field { margin-bottom: 12px; }
+    .conn-box label { display: block; font-size: 7px; color: #888; margin-bottom: 4px; }
+    .conn-box input {
+      width: 100%; padding: 8px;
+      background: #0a0a1a; border: 1px solid #333;
+      color: #e0e0f0; font-family: 'Press Start 2P', monospace; font-size: 7px;
+      outline: none;
+    }
+    .conn-box input:focus { border-color: #00f0ff; }
+    .conn-box .hint { font-size: 5px; color: #555; margin-top: 3px; }
+    .conn-box .actions { display: flex; gap: 8px; margin-top: 16px; }
+    .conn-box .btn-connect {
+      flex: 1; padding: 8px; font-family: 'Press Start 2P', monospace; font-size: 8px;
+      background: rgba(0,240,255,0.1); border: 1px solid #00f0ff; color: #00f0ff;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .conn-box .btn-connect:hover { background: rgba(0,240,255,0.2); }
+    .conn-box .btn-cancel {
+      padding: 8px 12px; font-family: 'Press Start 2P', monospace; font-size: 8px;
+      background: none; border: 1px solid #444; color: #888;
+      cursor: pointer;
+    }
+    .conn-error { font-size: 6px; color: #ff4466; margin-top: 8px; }
+
+    /* ── Character Editor (overlay) ── */
+    .editor-overlay {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: 280px; max-width: 90vw;
+      background: rgba(10,10,26,0.95);
+      border-left: 2px solid rgba(0,240,255,0.3);
+      z-index: 50;
+      display: none;
+      flex-direction: column;
+      font-family: 'Press Start 2P', monospace;
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+    }
+    .editor-overlay.show { display: flex; transform: translateX(0); }
+    .editor-overlay .ed-header {
+      padding: 12px; font-size: 8px; color: #ffcc00;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex; justify-content: space-between; align-items: center;
+      text-shadow: 0 0 6px rgba(255,204,0,0.4);
+    }
+    .editor-overlay .ed-close {
+      background: none; border: none; color: #666; font-size: 12px; cursor: pointer;
+    }
+    .editor-overlay .ed-body { padding: 12px; flex: 1; }
+    .editor-overlay .ed-row { margin-bottom: 10px; }
+    .editor-overlay .ed-row label { display: block; font-size: 6px; color: #888; margin-bottom: 4px; }
+    .editor-overlay .swatches { display: flex; gap: 4px; flex-wrap: wrap; }
+    .editor-overlay .sw {
+      width: 22px; height: 22px; border: 2px solid transparent; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .editor-overlay .sw:hover { transform: scale(1.2); }
+    .editor-overlay .sw.on { border-color: #00f0ff; box-shadow: 0 0 6px rgba(0,240,255,0.4); }
+    .editor-overlay .btns { display: flex; gap: 3px; flex-wrap: wrap; }
+    .editor-overlay .eb {
+      padding: 3px 6px; font-family: 'Press Start 2P', monospace; font-size: 5px;
+      background: #0a0a1a; border: 1px solid #333; color: #aaa; cursor: pointer;
+    }
+    .editor-overlay .eb:hover { border-color: #b44aff; color: #fff; }
+    .editor-overlay .eb.on { border-color: #00f0ff; color: #00f0ff; background: rgba(0,240,255,0.1); }
+    .editor-overlay .ed-actions {
+      padding: 12px; border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex; gap: 6px;
+    }
+    .editor-overlay .ed-act {
+      flex: 1; padding: 6px; font-family: 'Press Start 2P', monospace; font-size: 6px;
+      background: #0a0a1a; border: 1px solid #333; color: #aaa; cursor: pointer;
+    }
+    .editor-overlay .ed-act:hover { border-color: #00ff88; color: #00ff88; }
+
+    /* ── Scene Picker (bottom-right) ── */
+    .hud-scenes {
+      bottom: 12px; right: 16px;
+      display: flex; gap: 4px;
+    }
+    .hud-scene-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 6px; padding: 3px 8px;
+      background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1);
+      color: #888; cursor: pointer;
+    }
+    .hud-scene-btn:hover { border-color: #b44aff; color: #b44aff; }
+    .hud-scene-btn.on { border-color: #b44aff; color: #b44aff; background: rgba(180,74,255,0.1); }
+  </style>
+</head>
+<body>
+  <!-- ══ Fullscreen Canvas ══ -->
+  <canvas id="app-canvas"></canvas>
+
+  <!-- ══ HUD: Top-Left ══ -->
+  <div class="hud hud-top-left">
+    <div class="hud-logo">CLAWSKIN</div>
+    <div class="hud-mode demo" id="hud-mode">DEMO</div>
+  </div>
+
+  <!-- ══ HUD: Top-Right ══ -->
+  <div class="hud hud-top-right">
+    <button class="hud-btn" id="btn-connect" onclick="toggleConnPanel()">⚡ CONNECT</button>
+  </div>
+
+  <!-- ══ HUD: Bottom-Left (pets button) ══ -->
+  <div class="hud hud-bottom-left">
+    <button class="hud-btn" id="btn-pets" onclick="togglePetPanel()">🐾 PETS</button>
+  </div>
+
+  <!-- ══ HUD: Bottom-Center (agent roster) ══ -->
+  <div class="hud hud-bottom" id="hud-agents"></div>
+
+  <!-- ══ HUD: Bottom-Right (scenes) ══ -->
+  <div class="hud hud-scenes" id="hud-scenes"></div>
+
+  <!-- ══ Connection Panel Overlay ══ -->
+  <div class="conn-overlay" id="conn-overlay">
+    <div class="conn-box">
+      <h2>⚡ CONNECT TO GATEWAY</h2>
+      <div class="field">
+        <label>GATEWAY URL</label>
+        <input type="text" id="conn-url" placeholder="wss://your-gateway.example.com" />
+        <div class="hint">LOCAL: ws://localhost:18789 · REMOTE: wss://your-gateway.example.com</div>
+      </div>
+      <div class="field">
+        <label>TOKEN</label>
+        <input type="password" id="conn-token" placeholder="(if auth enabled)" />
+      </div>
+      <div class="conn-error" id="conn-error"></div>
+      <div class="actions">
+        <button class="btn-connect" onclick="doConnect()">CONNECT</button>
+        <button class="btn-cancel" onclick="toggleConnPanel()">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Character Editor Overlay ══ -->
+  <div class="editor-overlay" id="editor-overlay">
+    <div class="ed-header">
+      <span id="ed-title">🎨 CUSTOMIZE</span>
+      <button class="ed-close" onclick="closeEditor()">✕</button>
+    </div>
+    <div class="ed-body" id="ed-body"></div>
+    <div class="ed-actions">
+      <button class="ed-act" onclick="edRandom()">🎲 RANDOM</button>
+      <button class="ed-act" onclick="edSave()">💾 SAVE</button>
+    </div>
+  </div>
+
+  <!-- ══ Pet Manager Overlay ══ -->
+  <div class="editor-overlay" id="pet-overlay">
+    <div class="ed-header">
+      <span>🐾 PETS</span>
+      <button class="ed-close" onclick="closePetPanel()">✕</button>
+    </div>
+    <div class="ed-body" id="pet-body"></div>
+    <div class="ed-actions">
+      <button class="ed-act" onclick="clearAllPets()">🗑 CLEAR ALL</button>
+    </div>
+  </div>
+
+  <!-- ══ Scripts ══ -->
+  <script src="js/sprites/SpriteGenerator.js"></script>
+  <script src="js/character/AnimationManager.js"></script>
+  <script src="js/character/BubbleManager.js"></script>
+  <script src="js/character/CharacterSprite.js"></script>
+  <script src="js/state/DemoMode.js"></script>
+  <script src="js/scenes/OfficeScene.js"></script>
+  <script src="js/scenes/HackerScene.js"></script>
+  <script src="js/scenes/CafeScene.js"></script>
+  <script src="js/ui/CharacterEditor.js"></script>
+  <script src="js/ui/ScenePicker.js"></script>
+  <script src="js/app/SettingsManager.js"></script>
+  <script src="js/app/DeviceIdentity.js"></script>
+  <script src="js/app/GatewayClient.js"></script>
+  <script src="js/app/AgentStateMapper.js"></script>
+  <script src="js/app/AgentSlot.js"></script>
+  <script src="js/pets/Pet.js"></script>
+  <script src="js/pets/PetManager.js"></script>
+  <script src="js/app/ClawSkinApp.js"></script>
+
+  <script>
+    // HTML escape helper to prevent XSS from untrusted Gateway data
+    function esc(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    // ── Globals ──
+    let app, editingSlot = null;
+
+    // ── Fullscreen canvas sizing ──
+    function resizeCanvas() {
+      const c = document.getElementById('app-canvas');
+      c.width = window.innerWidth;
+      c.height = window.innerHeight;
+      if (app) { app.width = c.width; app.height = c.height; }
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // ── Connection Panel ──
+    function toggleConnPanel() {
+      const el = document.getElementById('conn-overlay');
+      el.classList.toggle('show');
+      if (el.classList.contains('show')) {
+        const s = app?.settings?.load() || {};
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        document.getElementById('conn-url').value = s.gatewayUrl || (isLocal ? 'ws://localhost:18789' : '');
+        document.getElementById('conn-token').value = s.token || '';
+        document.getElementById('conn-error').textContent = '';
+      }
+    }
+    function doConnect() {
+      let url = document.getElementById('conn-url').value.trim();
+      const token = document.getElementById('conn-token').value.trim();
+      if (!url) { document.getElementById('conn-error').textContent = 'ENTER A URL'; return; }
+      // Auto-fix: upgrade ws:// to wss:// when page is served over HTTPS
+      if (window.location.protocol === 'https:' && url.startsWith('ws://') && !url.includes('localhost') && !url.includes('127.0.0.1')) {
+        url = url.replace('ws://', 'wss://');
+        document.getElementById('conn-url').value = url;
+      }
+      app.settings.update({ gatewayUrl: url, token, autoConnect: true });
+      app.connectToGateway(url, token);
+      document.getElementById('conn-overlay').classList.remove('show');
+    }
+
+    // ── Character Editor ──
+    function openEditor(slot) {
+      editingSlot = slot;
+      document.getElementById('ed-title').textContent = '🎨 ' + slot.name;
+      renderEditorBody(slot.character.config);
+      document.getElementById('editor-overlay').classList.add('show');
+    }
+    function closeEditor() {
+      document.getElementById('editor-overlay').classList.remove('show');
+      editingSlot = null;
+    }
+    function renderEditorBody(cfg) {
+      const skins = SpriteGenerator.SKIN_TONES;
+      const hairs = SpriteGenerator.HAIR_COLORS;
+      const hairNames = ['MESSY', 'SPIKY', 'LONG', 'CURLY', 'BUZZ'];
+      const outfitTypes = Object.keys(SpriteGenerator.OUTFIT_COLORS);
+      const outfitNames = { hoodie:'HOODIE', shirt:'SHIRT', suit:'SUIT', labcoat:'LABCOAT', tshirt:'TEE' };
+      const accNames = { '':'NONE', glasses:'GLASSES', hat:'HAT', headphones:'PHONES', cap:'CAP' };
+
+      document.getElementById('ed-body').innerHTML = `
+        <div class="ed-row"><label>SKIN</label><div class="swatches">
+          ${skins.map(c => `<div class="sw ${cfg.skinColor===c?'on':''}" style="background:${c}" onclick="edSet('skinColor','${c}')"></div>`).join('')}
+        </div></div>
+        <div class="ed-row"><label>HAIR</label><div class="btns">
+          ${hairNames.map((n,i) => `<button class="eb ${cfg.hairType===i?'on':''}" onclick="edSet('hairType',${i})">${n}</button>`).join('')}
+        </div></div>
+        <div class="ed-row"><label>HAIR COLOR</label><div class="swatches">
+          ${hairs.map(c => `<div class="sw ${cfg.hairColor===c?'on':''}" style="background:${c}" onclick="edSet('hairColor','${c}')"></div>`).join('')}
+        </div></div>
+        <div class="ed-row"><label>OUTFIT</label><div class="btns">
+          ${outfitTypes.map(t => `<button class="eb ${cfg.outfitType===t?'on':''}" onclick="edSet('outfitType','${t}')">${outfitNames[t]}</button>`).join('')}
+        </div></div>
+        <div class="ed-row"><label>OUTFIT COLOR</label><div class="swatches">
+          ${[0,1,2,3,4].map(i => {
+            const c = (SpriteGenerator.OUTFIT_COLORS[cfg.outfitType||'hoodie']||SpriteGenerator.OUTFIT_COLORS.hoodie)[i];
+            return `<div class="sw ${cfg.outfitColorIdx===i?'on':''}" style="background:${c}" onclick="edSet('outfitColorIdx',${i})"></div>`;
+          }).join('')}
+        </div></div>
+        <div class="ed-row"><label>ACCESSORY</label><div class="btns">
+          ${Object.entries(accNames).map(([k,v]) => `<button class="eb ${(cfg.accessory||'')=== k?'on':''}" onclick="edSet('accessory','${k}')">${v}</button>`).join('')}
+        </div></div>
+      `;
+    }
+    function edSet(key, val) {
+      if (!editingSlot) return;
+      if ((key === 'accessory' || key === 'pet') && val === '') val = null;
+      editingSlot.character.updateConfig({ [key]: val });
+      editingSlot.updateConfig(editingSlot.character.config);
+      renderEditorBody(editingSlot.character.config);
+    }
+    function edRandom() {
+      if (!editingSlot) return;
+      const cfg = CharacterSprite.randomConfig();
+      editingSlot.character.updateConfig(cfg);
+      editingSlot.updateConfig(cfg);
+      renderEditorBody(cfg);
+    }
+    function edSave() { closeEditor(); }
+
+    // ── Pet Manager ──
+    function togglePetPanel() {
+      const el = document.getElementById('pet-overlay');
+      if (el.classList.contains('show')) {
+        closePetPanel();
+      } else {
+        closeEditor(); // close character editor if open
+        renderPetPanel();
+        el.classList.add('show');
+      }
+    }
+    function closePetPanel() {
+      document.getElementById('pet-overlay').classList.remove('show');
+    }
+    function renderPetPanel() {
+      if (!app?.petManager) return;
+      const pm = app.petManager;
+      const types = PetManager.getAvailableTypes();
+      const typeEmoji = { cat:'🐱', dog:'🐕', robot:'🤖', bird:'🐦', hamster:'🐹' };
+      const typeLabel = { cat:'CAT', dog:'DOG', robot:'ROBOT', bird:'BIRD', hamster:'HAMSTER' };
+
+      const petList = pm.pets.map(p => {
+        const colors = Pet.COLORS[p.type] || [];
+        const colorSwatches = colors.map(c =>
+          `<div class="sw ${p.color===c?'on':''}" style="background:${c};width:16px;height:16px;" onclick="setPetColor('${p.id}','${c}')"></div>`
+        ).join('');
+        return `<div class="ed-row" style="margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:6px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:7px;color:#ccc;">${typeEmoji[p.type]||''} ${typeLabel[p.type]||p.type}</span>
+            <button class="eb" style="color:#ff4466;border-color:#ff4466;" onclick="removePet('${p.id}')">✕</button>
+          </div>
+          <div class="swatches" style="gap:3px;">${colorSwatches}</div>
+        </div>`;
+      }).join('');
+
+      const addBtns = types.map(t =>
+        `<button class="eb" onclick="addPet('${t}')">${typeEmoji[t]||''} ${typeLabel[t]||t}</button>`
+      ).join('');
+
+      document.getElementById('pet-body').innerHTML = `
+        <div class="ed-row"><label>CURRENT PETS (${pm.pets.length})</label></div>
+        ${petList || '<div style="font-size:6px;color:#555;margin-bottom:8px;">No pets yet</div>'}
+        <div class="ed-row" style="margin-top:12px;"><label>ADD PET</label><div class="btns">${addBtns}</div></div>
+      `;
+    }
+    function addPet(type) {
+      if (!app?.petManager) return;
+      app.petManager.addPet(type);
+      renderPetPanel();
+    }
+    function removePet(id) {
+      if (!app?.petManager) return;
+      app.petManager.removePet(id);
+      renderPetPanel();
+    }
+    function setPetColor(id, color) {
+      if (!app?.petManager) return;
+      app.petManager.setPetColor(id, color);
+      // Clear sprite cache so new color takes effect
+      app.spriteGen.cache.clear();
+      renderPetPanel();
+    }
+    function clearAllPets() {
+      if (!app?.petManager) return;
+      app.petManager.clearPets();
+      renderPetPanel();
+    }
+
+    // ── HUD Updates ──
+    function updateHUD() {
+      if (!app) return;
+      // Mode badge
+      const modeEl = document.getElementById('hud-mode');
+      if (app.mode === 'live') {
+        modeEl.textContent = 'LIVE';
+        modeEl.className = 'hud-mode live';
+        document.getElementById('btn-connect').textContent = '⚡ CONNECTED';
+      } else {
+        modeEl.textContent = 'DEMO';
+        modeEl.className = 'hud-mode demo';
+        document.getElementById('btn-connect').textContent = '⚡ CONNECT';
+      }
+
+      // Agent roster
+      const agentsEl = document.getElementById('hud-agents');
+      if (app.agents.length > 0) {
+        agentsEl.innerHTML = app.agents.map((a, i) => {
+          const st = a.stateMapper?.currentState || 'idle';
+          const sel = editingSlot === a ? ' active' : '';
+          return `<div class="hud-agent${sel}" onclick="clickAgentBadge(${i})"><span class="hud-dot ${esc(st)}"></span>${esc(a.name)}</div>`;
+        }).join('');
+      } else {
+        agentsEl.innerHTML = '';
+      }
+    }
+
+    function clickAgentBadge(idx) {
+      const slot = app.agents[idx];
+      if (slot) openEditor(slot);
+    }
+
+    // ── Scene Picker ──
+    function initScenePicker() {
+      const scenes = app.scenes;
+      const el = document.getElementById('hud-scenes');
+      el.innerHTML = scenes.map((s, i) =>
+        `<button class="hud-scene-btn ${i===0?'on':''}" onclick="setScene(${i})">${s.label}</button>`
+      ).join('');
+    }
+    function setScene(idx) {
+      app.setScene(idx);
+      document.querySelectorAll('.hud-scene-btn').forEach((b, i) => {
+        b.classList.toggle('on', i === idx);
+      });
+    }
+
+    // ── Init ──
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        app = new ClawSkinApp('app-canvas', {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        });
+        app.init();
+        window._app = app;
+
+        // Override connection state callbacks for HUD
+        const origStateChange = app._onConnectionStateChange.bind(app);
+        app._onConnectionStateChange = (state, detail) => {
+          if (state === 'error') {
+            document.getElementById('conn-error').textContent = detail || 'CONNECTION FAILED';
+            const overlay = document.getElementById('conn-overlay');
+            if (!overlay.classList.contains('show')) toggleConnPanel();
+          }
+          updateHUD();
+        };
+
+        const origConnected = app._onGatewayConnected.bind(app);
+        app._onGatewayConnected = async (hello) => {
+          await origConnected(hello);
+          updateHUD();
+          // Keep updating HUD
+          setInterval(updateHUD, 2000);
+        };
+
+        const origDisconnected = app._onGatewayDisconnected.bind(app);
+        app._onGatewayDisconnected = (info) => {
+          origDisconnected(info);
+          updateHUD();
+        };
+
+        // Canvas click → open editor for clicked agent
+        document.getElementById('app-canvas').addEventListener('click', (e) => {
+          if (app.mode !== 'live') return;
+          const c = document.getElementById('app-canvas');
+          const rect = c.getBoundingClientRect();
+          const sx = app.width / rect.width;
+          const sy = app.height / rect.height;
+          const cx = (e.clientX - rect.left) * sx;
+          const cy = (e.clientY - rect.top) * sy;
+          for (const slot of app.agents) {
+            if (slot.hitTest(cx, cy)) {
+              openEditor(slot);
+              return;
+            }
+          }
+          // Clicked empty space → close editor
+          closeEditor();
+        });
+
+        initScenePicker();
+        app.start();
+        updateHUD();
+      } catch (e) {
+        console.error('[ClawSkin] init failed:', e);
+      }
+    });
+  </script>
+</body>
+</html>
