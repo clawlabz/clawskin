@@ -115,14 +115,10 @@ class ClawSkinApp {
     this.running = true;
     this.lastTime = performance.now();
 
-    const config = this.settings.load();
-
-    if (config.autoConnect && config.gatewayUrl) {
-      this.connectToGateway(config.gatewayUrl, config.token);
-    } else {
-      this._startDemoMode();
-      this._tryAutoDetect();
-    }
+    // Always try to fetch fresh config from serve.cjs first.
+    // This ensures we have the latest token even if localStorage is stale.
+    this._startDemoMode();
+    this._tryAutoDetect();
 
     this._loop();
   }
