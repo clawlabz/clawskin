@@ -20,6 +20,27 @@ class HackerScene {
     this.label = '💻 Hacker Den';
     this.workstations = [];
     this.poiList = [];
+
+    // Mood cycling (no window — cycle the neon ambience)
+    this.weather = 'purple';
+    this.weatherStates = ['purple', 'red_alert', 'matrix', 'blackout'];
+    this.moodColors = {
+      purple:    { r: 155, g: 89,  b: 182 },
+      red_alert: { r: 231, g: 76,  b: 60  },
+      matrix:    { r: 0,   g: 255, b: 65  },
+      blackout:  { r: 10,  g: 10,  b: 30  },
+    };
+  }
+
+  cycleWeather() {
+    const idx = this.weatherStates.indexOf(this.weather);
+    this.weather = this.weatherStates[(idx + 1) % this.weatherStates.length];
+    return this.weather;
+  }
+
+  getWindowRect() {
+    const w = this.canvas.width, h = this.canvas.height;
+    return { x: w - 95, y: Math.round(h * 0.12), w: 60, h: 35 }; // LED panel
   }
 
   init() {
@@ -168,10 +189,16 @@ class HackerScene {
     });
     ctx.restore();
 
-    // ── Neon ambient pulse ──
+    // ── Neon ambient pulse — mood-dependent ──
+    const mc = this.moodColors[this.weather] || this.moodColors.purple;
     const pulse = Math.sin(this.neonPulse) * 0.03 + 0.05;
-    ctx.fillStyle = `rgba(155, 89, 182, ${pulse})`;
+    ctx.fillStyle = `rgba(${mc.r}, ${mc.g}, ${mc.b}, ${pulse})`;
     ctx.fillRect(0, 0, w, h);
+    // Blackout extra darkening
+    if (this.weather === 'blackout') {
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.fillRect(0, 0, w, h);
+    }
 
     const floorY = Math.round(h * 0.40);
     const floorH = h - floorY;

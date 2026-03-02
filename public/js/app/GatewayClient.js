@@ -282,6 +282,9 @@ class GatewayClient {
   async getChatHistory(sessionKey, limit = 50) {
     return this.request('chat.history', { sessionKey, limit });
   }
+  async sendChat(sessionKey, message) {
+    return this.request('chat.send', { sessionKey, message, idempotencyKey: this._uuid() });
+  }
   async getSessionsList(opts = {}) {
     return this.request('sessions.list', { activeMinutes: 120, ...opts });
   }

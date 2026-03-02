@@ -21,6 +21,18 @@ class OfficeScene {
     this.label = '🏢 Office';
     this.workstations = [];
 
+    // Weather system
+    this.weather = 'sunny'; // 'sunny' | 'night' | 'rain' | 'snow'
+    this.weatherStates = ['sunny', 'night', 'rain', 'snow'];
+    this.rainDrops = [];
+    this.snowflakes = [];
+    this.lightningTimer = 0;
+    this.lightningFlash = 0;
+    this.stars = [];
+    for (let i = 0; i < 25; i++) this.stars.push({ x: Math.random() * 80, y: Math.random() * 50, twinkle: Math.random() * Math.PI * 2 });
+    for (let i = 0; i < 30; i++) this.rainDrops.push({ x: Math.random() * 80, y: Math.random() * 70, speed: 0.08 + Math.random() * 0.06, len: 3 + Math.random() * 4 });
+    for (let i = 0; i < 20; i++) this.snowflakes.push({ x: Math.random() * 80, y: Math.random() * 70, speed: 0.02 + Math.random() * 0.02, drift: Math.random() * Math.PI * 2 });
+
     // Wandering targets (shared locations agents can visit)
     this.poiList = []; // populated in getWorkstations
   }
@@ -147,6 +159,40 @@ class OfficeScene {
     this.cloudX += dt * 0.003;
     this.sunbeamTimer += dt;
     this.screenFlicker += dt;
+
+    // Weather particle updates
+    if (this.weather === 'rain') {
+      for (const d of this.rainDrops) {
+        d.y += d.speed * dt;
+        if (d.y > 70) { d.y = -5; d.x = Math.random() * 80; }
+      }
+      this.lightningTimer += dt;
+      if (this.lightningFlash > 0) this.lightningFlash -= dt;
+      if (this.lightningTimer > 4000 + Math.random() * 8000) {
+        this.lightningFlash = 150;
+        this.lightningTimer = 0;
+      }
+    } else if (this.weather === 'snow') {
+      for (const s of this.snowflakes) {
+        s.y += s.speed * dt;
+        s.drift += dt * 0.002;
+        s.x += Math.sin(s.drift) * 0.02;
+        if (s.y > 70) { s.y = -3; s.x = Math.random() * 80; }
+      }
+    } else if (this.weather === 'night') {
+      for (const star of this.stars) star.twinkle += dt * 0.003;
+    }
+  }
+
+  cycleWeather() {
+    const idx = this.weatherStates.indexOf(this.weather);
+    this.weather = this.weatherStates[(idx + 1) % this.weatherStates.length];
+    return this.weather;
+  }
+
+  getWindowRect() {
+    const w = this.canvas.width, h = this.canvas.height;
+    return { x: (w - 80) / 2, y: Math.round(h * 0.08), w: 80, h: 70 };
   }
 
   /** Render background wall + static decorations (called once per frame) */
@@ -156,21 +202,78 @@ class OfficeScene {
 
     if (this.bgCanvas) ctx.drawImage(this.bgCanvas, 0, 0);
 
-    // Animated clouds — inside window, pushed down to match new window position
+    // ── Window weather rendering ──
     const wx = (w - 80) / 2;
     const wy = Math.round(h * 0.08);
     ctx.save();
     ctx.beginPath(); ctx.rect(wx, wy + 2, 80, 70); ctx.clip();
-    ctx.fillStyle = '#FFF';
-    const cx1 = wx + ((this.cloudX * 20) % 120) - 20;
-    ctx.fillRect(cx1, wy + 20, 18, 6); ctx.fillRect(cx1 + 3, wy + 17, 11, 4);
-    const cx2 = wx + ((this.cloudX * 12 + 60) % 130) - 10;
-    ctx.fillRect(cx2, wy + 35, 14, 5); ctx.fillRect(cx2 + 2, wy + 32, 9, 4);
+
+    if (this.weather === 'sunny') {
+      // Sunny — blue sky + drifting clouds + sun
+      ctx.fillStyle = '#FFF';
+      const cx1 = wx + ((this.cloudX * 20) % 120) - 20;
+      ctx.fillRect(cx1, wy + 20, 18, 6); ctx.fillRect(cx1 + 3, wy + 17, 11, 4);
+      const cx2 = wx + ((this.cloudX * 12 + 60) % 130) - 10;
+      ctx.fillRect(cx2, wy + 35, 14, 5); ctx.fillRect(cx2 + 2, wy + 32, 9, 4);
+    } else if (this.weather === 'night') {
+      // Night — dark sky + moon + twinkling stars
+      ctx.fillStyle = '#0B0B2A';
+      ctx.fillRect(wx, wy + 2, 80, 70);
+      // Moon
+      ctx.fillStyle = '#FFFDE7';
+      ctx.beginPath(); ctx.arc(wx + 58, wy + 22, 10, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#0B0B2A';
+      ctx.beginPath(); ctx.arc(wx + 62, wy + 19, 8, 0, Math.PI * 2); ctx.fill();
+      // Stars
+      ctx.fillStyle = '#FFF';
+      for (const star of this.stars) {
+        const alpha = 0.4 + Math.sin(star.twinkle) * 0.5;
+        ctx.globalAlpha = Math.max(0.1, alpha);
+        ctx.fillRect(wx + star.x, wy + 2 + star.y * 0.8, 1.5, 1.5);
+      }
+      ctx.globalAlpha = 1;
+    } else if (this.weather === 'rain') {
+      // Rain — dark grey sky + raindrops + lightning flash
+      ctx.fillStyle = '#3A3A4A';
+      ctx.fillRect(wx, wy + 2, 80, 70);
+      // Dark clouds
+      ctx.fillStyle = '#2A2A3A';
+      ctx.fillRect(wx + 5, wy + 12, 25, 8); ctx.fillRect(wx + 8, wy + 9, 18, 5);
+      ctx.fillRect(wx + 40, wy + 16, 30, 7); ctx.fillRect(wx + 45, wy + 13, 20, 5);
+      // Rain streaks
+      ctx.strokeStyle = 'rgba(150,180,220,0.6)'; ctx.lineWidth = 1;
+      for (const d of this.rainDrops) {
+        ctx.beginPath(); ctx.moveTo(wx + d.x, wy + d.y); ctx.lineTo(wx + d.x + 0.5, wy + d.y + d.len); ctx.stroke();
+      }
+      // Lightning flash overlay
+      if (this.lightningFlash > 0) {
+        ctx.fillStyle = `rgba(255,255,255,${this.lightningFlash / 300})`;
+        ctx.fillRect(wx, wy + 2, 80, 70);
+      }
+    } else if (this.weather === 'snow') {
+      // Snow — cool grey-blue sky + falling snowflakes
+      ctx.fillStyle = '#6B7B8D';
+      ctx.fillRect(wx, wy + 2, 80, 70);
+      // Light clouds
+      ctx.fillStyle = '#8A9AAD';
+      ctx.fillRect(wx + 8, wy + 14, 22, 7); ctx.fillRect(wx + 11, wy + 11, 15, 5);
+      ctx.fillRect(wx + 45, wy + 18, 25, 6); ctx.fillRect(wx + 48, wy + 15, 18, 5);
+      // Snowflakes
+      ctx.fillStyle = '#FFF';
+      for (const s of this.snowflakes) {
+        ctx.globalAlpha = 0.7 + Math.sin(s.drift) * 0.3;
+        ctx.beginPath(); ctx.arc(wx + s.x, wy + s.y, 1.5, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      // Snow accumulation on sill
+      ctx.fillStyle = '#E8EEF4';
+      ctx.fillRect(wx, wy + 67, 80, 5);
+    }
     ctx.restore();
 
-    // Sunbeam
+    // Sunbeam (only in sunny weather)
     const floorLine = h * 0.40;
-    if (Math.sin(this.sunbeamTimer * 0.001) > 0) {
+    if (this.weather === 'sunny' && Math.sin(this.sunbeamTimer * 0.001) > 0) {
       ctx.fillStyle = 'rgba(255,255,200,0.04)';
       const bx = wx + 60;
       ctx.beginPath(); ctx.moveTo(bx, wy + 80); ctx.lineTo(bx+40, wy); ctx.lineTo(bx+55, wy); ctx.lineTo(bx+80, h*0.55); ctx.fill();
@@ -179,6 +282,20 @@ class OfficeScene {
         const px = bx + 20 + Math.sin(this.sunbeamTimer*0.0005+i*2)*25;
         const py = wy + 30 + ((this.sunbeamTimer*0.02+i*40)%(h*0.25));
         ctx.beginPath(); ctx.arc(px,py,1.5,0,Math.PI*2); ctx.fill();
+      }
+    }
+    // Night ambient overlay
+    if (this.weather === 'night') {
+      ctx.fillStyle = 'rgba(5,5,30,0.15)';
+      ctx.fillRect(0, 0, w, h);
+    }
+    // Rain ambient — slight darkening + lightning flash on whole scene
+    if (this.weather === 'rain') {
+      ctx.fillStyle = 'rgba(0,0,20,0.08)';
+      ctx.fillRect(0, 0, w, h);
+      if (this.lightningFlash > 50) {
+        ctx.fillStyle = `rgba(255,255,255,${(this.lightningFlash - 50) / 500})`;
+        ctx.fillRect(0, 0, w, h);
       }
     }
 

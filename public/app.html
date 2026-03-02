@@ -28,7 +28,7 @@
     }
 
     /* ── Pixel HUD (KOF style) ── */
-    .hud { position: fixed; font-family: 'Press Start 2P', monospace; z-index: 10; pointer-events: none; }
+    .hud { position: fixed; font-family: 'Press Start 2P', monospace; z-index: 10; pointer-events: none; zoom: var(--ui-scale, 1); }
     .hud * { pointer-events: auto; }
 
     /* Top-left: logo + mode */
@@ -121,6 +121,7 @@
       padding: 24px;
       width: 380px;
       max-width: 90vw;
+      zoom: var(--ui-scale, 1);
     }
     .conn-box h2 {
       font-size: 10px; color: #00f0ff; margin-bottom: 16px;
@@ -153,28 +154,39 @@
     /* ── Character Editor (overlay) ── */
     .editor-overlay {
       position: fixed; top: 0; right: 0; bottom: 0;
-      width: 280px; max-width: 90vw;
+      width: 360px; max-width: 90vw;
       background: rgba(10,10,26,0.95);
       border-left: 2px solid rgba(0,240,255,0.3);
       z-index: 50;
       display: none;
       flex-direction: column;
       font-family: 'Press Start 2P', monospace;
-      overflow-y: auto;
+      overflow: hidden;
       transform: translateX(100%);
       transition: transform 0.3s ease;
+      zoom: var(--ui-scale, 1);
     }
     .editor-overlay.show { display: flex; transform: translateX(0); }
     .editor-overlay .ed-header {
-      padding: 12px; font-size: 8px; color: #ffcc00;
+      padding: 8px 12px; font-size: 8px; color: #ffcc00;
       border-bottom: 1px solid rgba(255,255,255,0.1);
       display: flex; justify-content: space-between; align-items: center;
       text-shadow: 0 0 6px rgba(255,204,0,0.4);
+      flex-shrink: 0;
     }
+    .editor-overlay .ed-header-btns {
+      display: flex; gap: 6px; align-items: center;
+    }
+    .editor-overlay .ed-header-btn {
+      font-family: 'Press Start 2P', monospace; font-size: 6px;
+      padding: 3px 8px; background: #0a0a1a; border: 1px solid #333;
+      color: #aaa; cursor: pointer; transition: all 0.2s;
+    }
+    .editor-overlay .ed-header-btn:hover { border-color: #00ff88; color: #00ff88; }
     .editor-overlay .ed-close {
       background: none; border: none; color: #666; font-size: 12px; cursor: pointer;
     }
-    .editor-overlay .ed-body { padding: 12px; flex: 1; }
+    .editor-overlay .ed-body { padding: 12px; flex-shrink: 0; overflow-y: auto; max-height: 45%; }
     .editor-overlay .ed-row { margin-bottom: 10px; }
     .editor-overlay .ed-row label { display: block; font-size: 6px; color: #888; margin-bottom: 4px; }
     .editor-overlay .swatches { display: flex; gap: 4px; flex-wrap: wrap; }
@@ -200,6 +212,70 @@
       background: #0a0a1a; border: 1px solid #333; color: #aaa; cursor: pointer;
     }
     .editor-overlay .ed-act:hover { border-color: #00ff88; color: #00ff88; }
+
+    /* ── Chat Panel (inside editor overlay) ── */
+    .ed-chat {
+      border-top: 1px solid rgba(0,240,255,0.2);
+      display: flex; flex-direction: column;
+      flex: 1; min-height: 0; overflow: hidden;
+    }
+    .ed-chat-header {
+      padding: 8px 12px; font-size: 7px; color: #00f0ff;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .ed-chat-messages {
+      flex: 1; overflow-y: auto; padding: 10px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .ed-chat-msg {
+      font-size: 8px; line-height: 1.8; padding: 8px 10px;
+      max-width: 90%; word-break: break-word;
+    }
+    .ed-chat-msg.agent {
+      align-self: flex-start;
+      background: rgba(180,74,255,0.1); border: 1px solid rgba(180,74,255,0.3);
+      color: #ccc;
+    }
+    .ed-chat-msg.user {
+      align-self: flex-end;
+      background: rgba(0,240,255,0.1); border: 1px solid rgba(0,240,255,0.3);
+      color: #e0e0f0;
+    }
+    .ed-chat-msg .msg-role {
+      font-size: 6px; color: #666; margin-bottom: 3px;
+    }
+    .ed-chat-msg.agent .msg-role { color: #b44aff; }
+    .ed-chat-msg.user .msg-role { color: #00f0ff; }
+    .ed-chat-typing {
+      align-self: flex-start; font-size: 8px; color: #b44aff;
+      padding: 8px 10px; animation: blink 1s infinite;
+    }
+    .ed-chat-empty {
+      font-size: 8px; color: #444; text-align: center; padding: 20px 8px;
+    }
+    .ed-chat-input-row {
+      display: flex; padding: 0;
+      border-top: 1px solid rgba(0,240,255,0.2);
+      flex-shrink: 0;
+    }
+    .ed-chat-input {
+      flex: 1; min-width: 0; width: 100%; padding: 10px 12px;
+      background: rgba(0,0,0,0.4); border: none; border-right: 1px solid rgba(0,240,255,0.15);
+      color: #e0e0f0; font-family: 'Press Start 2P', monospace; font-size: 8px;
+      outline: none; box-shadow: none; -webkit-appearance: none; border-radius: 0;
+    }
+    .ed-chat-input::placeholder { color: #444; }
+    .ed-chat-input:focus { background: rgba(0,240,255,0.05); outline: none; box-shadow: none; }
+    .ed-chat-send {
+      padding: 10px 14px; background: rgba(0,240,255,0.1);
+      border: none; color: #00f0ff;
+      font-family: 'Press Start 2P', monospace; font-size: 8px;
+      cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+    }
+    .ed-chat-send:hover { background: rgba(0,240,255,0.25); color: #fff; }
+      cursor: pointer; transition: all 0.2s;
+    }
+    .ed-chat-send:hover { background: rgba(0,240,255,0.2); }
 
     /* ── Scene Picker (bottom-right) ── */
     .hud-scenes {
@@ -267,12 +343,19 @@
   <div class="editor-overlay" id="editor-overlay">
     <div class="ed-header">
       <span id="ed-title">🎨 CUSTOMIZE</span>
-      <button class="ed-close" onclick="closeEditor()">✕</button>
+      <div class="ed-header-btns">
+        <button class="ed-header-btn" onclick="edRandom()">🎲 RANDOM</button>
+        <button class="ed-close" onclick="closeEditor()">✕</button>
+      </div>
     </div>
     <div class="ed-body" id="ed-body"></div>
-    <div class="ed-actions">
-      <button class="ed-act" onclick="edRandom()">🎲 RANDOM</button>
-      <button class="ed-act" onclick="edSave()">💾 SAVE</button>
+    <div class="ed-chat" id="ed-chat" style="display:none;">
+      <div class="ed-chat-header">💬 CHAT</div>
+      <div class="ed-chat-messages" id="ed-chat-messages"></div>
+      <div class="ed-chat-input-row">
+        <input type="text" class="ed-chat-input" id="ed-chat-input" placeholder="Message..." onkeydown="if(event.key==='Enter')sendChatMsg()" />
+        <button class="ed-chat-send" onclick="sendChatMsg()">▶</button>
+      </div>
     </div>
   </div>
 
@@ -317,12 +400,23 @@
 
     // ── Globals ──
     let app, editingSlot = null;
+    let chatSessionKey = null, chatStreamingEl = null;
 
     // ── Fullscreen canvas sizing ──
     // Fixed logical resolution — CSS scales it up with pixelated rendering.
     // This keeps pixel characters proportional on any screen size.
     const LOGICAL_W = 960;
     const LOGICAL_H = 600;
+
+    // ── UI scaling for HUD/panels on large screens ──
+    function updateUIScale() {
+      // Only scale UI on screens wider than 2K (2560px).
+      // Below 2K, keep native size (scale=1) to avoid bloated HUD/panels.
+      const scale = window.innerWidth > 2560 ? window.innerWidth / 2560 : 1;
+      document.documentElement.style.setProperty('--ui-scale', scale.toFixed(2));
+    }
+    updateUIScale();
+    window.addEventListener('resize', updateUIScale);
 
     function resizeCanvas() {
       const c = document.getElementById('app-canvas');
@@ -365,10 +459,15 @@
       document.getElementById('ed-title').textContent = '🎨 ' + slot.name;
       renderEditorBody(slot.character.config);
       document.getElementById('editor-overlay').classList.add('show');
+      loadChat(slot);
     }
     function closeEditor() {
       document.getElementById('editor-overlay').classList.remove('show');
       editingSlot = null;
+      chatSessionKey = null;
+      chatStreamingEl = null;
+      const chatEl = document.getElementById('ed-chat');
+      if (chatEl) chatEl.style.display = 'none';
     }
     function renderEditorBody(cfg) {
       const skins = SpriteGenerator.SKIN_TONES;
@@ -416,7 +515,134 @@
       editingSlot.updateConfig(cfg);
       renderEditorBody(cfg);
     }
-    function edSave() { closeEditor(); }
+    // ── Agent Chat ──
+    function loadChat(slot) {
+      const chatEl = document.getElementById('ed-chat');
+      const msgsEl = document.getElementById('ed-chat-messages');
+      chatSessionKey = null;
+      chatStreamingEl = null;
+
+      // Only show chat in live mode with valid sessionKeys
+      if (!app || app.mode !== 'live' || !app.gateway?.connected) {
+        chatEl.style.display = 'none';
+        return;
+      }
+      const keys = slot.stateMapper ? [...slot.stateMapper.sessionKeys] : [];
+      if (keys.length === 0 || keys[0] === 'main') {
+        chatEl.style.display = 'none';
+        return;
+      }
+
+      chatSessionKey = keys[0];
+      chatEl.style.display = 'flex';
+      msgsEl.innerHTML = '<div class="ed-chat-empty">Loading...</div>';
+
+      app.gateway.getChatHistory(chatSessionKey, 50).then(result => {
+        if (editingSlot !== slot) return; // user switched agents
+        const messages = result?.messages || result || [];
+        if (!Array.isArray(messages) || messages.length === 0) {
+          msgsEl.innerHTML = '<div class="ed-chat-empty">No messages yet</div>';
+          return;
+        }
+        msgsEl.innerHTML = '';
+        for (const msg of messages) {
+          const role = msg.role === 'user' ? 'user' : 'agent';
+          const text = extractMsgText(msg);
+          if (text) appendChatMessage(role, text);
+        }
+      }).catch(() => {
+        if (editingSlot !== slot) return;
+        msgsEl.innerHTML = '<div class="ed-chat-empty">Could not load history</div>';
+      });
+    }
+
+    function extractMsgText(msg) {
+      if (!msg) return null;
+      if (typeof msg.text === 'string') return msg.text;
+      if (typeof msg.content === 'string') return msg.content;
+      if (Array.isArray(msg.content)) {
+        for (const block of msg.content) {
+          if (block.type === 'text' && block.text) return block.text;
+        }
+      }
+      if (typeof msg.message === 'object') return extractMsgText(msg.message);
+      return null;
+    }
+
+    function appendChatMessage(role, text) {
+      const msgsEl = document.getElementById('ed-chat-messages');
+      // Remove empty placeholder if present
+      const empty = msgsEl.querySelector('.ed-chat-empty');
+      if (empty) empty.remove();
+
+      const div = document.createElement('div');
+      div.className = 'ed-chat-msg ' + role;
+      const roleLabel = role === 'user' ? 'YOU' : (editingSlot?.name || 'AGENT');
+      div.innerHTML = '<div class="msg-role">' + esc(roleLabel) + '</div>' + esc(text);
+      msgsEl.appendChild(div);
+      msgsEl.scrollTop = msgsEl.scrollHeight;
+    }
+
+    function sendChatMsg() {
+      const input = document.getElementById('ed-chat-input');
+      const text = (input.value || '').trim();
+      if (!text || !chatSessionKey || !app?.gateway?.connected) return;
+      input.value = '';
+
+      appendChatMessage('user', text);
+      app.gateway.sendChat(chatSessionKey, text).catch(err => {
+        appendChatMessage('agent', 'Error: ' + (err.message || 'Send failed'));
+      });
+    }
+
+    function handleEditorChatEvent(agentId, payload) {
+      if (!editingSlot || !payload) return;
+      // Only process events for the agent we're currently editing
+      if (editingSlot.agentId !== agentId) return;
+
+      const msgsEl = document.getElementById('ed-chat-messages');
+      if (!msgsEl) return;
+
+      switch (payload.state) {
+        case 'delta': {
+          if (!chatStreamingEl) {
+            // Remove empty placeholder
+            const empty = msgsEl.querySelector('.ed-chat-empty');
+            if (empty) empty.remove();
+            chatStreamingEl = document.createElement('div');
+            chatStreamingEl.className = 'ed-chat-typing';
+            chatStreamingEl.textContent = '...';
+            msgsEl.appendChild(chatStreamingEl);
+            msgsEl.scrollTop = msgsEl.scrollHeight;
+          }
+          break;
+        }
+        case 'final': {
+          if (chatStreamingEl) {
+            chatStreamingEl.remove();
+            chatStreamingEl = null;
+          }
+          const text = extractMsgText(payload.message || payload);
+          if (text) appendChatMessage('agent', text);
+          break;
+        }
+        case 'error': {
+          if (chatStreamingEl) {
+            chatStreamingEl.remove();
+            chatStreamingEl = null;
+          }
+          appendChatMessage('agent', 'Something went wrong...');
+          break;
+        }
+        case 'aborted': {
+          if (chatStreamingEl) {
+            chatStreamingEl.remove();
+            chatStreamingEl = null;
+          }
+          break;
+        }
+      }
+    }
 
     // ── Pet Manager ──
     function togglePetPanel() {
@@ -519,6 +745,99 @@
       if (slot) openEditor(slot);
     }
 
+    // ── Easter Egg Helpers ──
+    function showWeatherToast(weather) {
+      const labels = { sunny:'☀️ Sunny', night:'🌙 Night', rain:'🌧️ Rain', snow:'❄️ Snow',
+                       purple:'💜 Neon', red_alert:'🔴 Alert', matrix:'💚 Matrix', blackout:'🌑 Blackout',
+                       fog:'🌫️ Fog' };
+      showDecoToast(labels[weather] || weather);
+    }
+    function showDecoToast(msg) {
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:200;' +
+        'font-family:"Press Start 2P",monospace;font-size:10px;color:#fff;background:rgba(10,10,26,0.9);' +
+        'border:1px solid rgba(0,240,255,0.4);padding:10px 18px;pointer-events:none;text-align:center;' +
+        'text-shadow:0 0 6px rgba(0,240,255,0.4);opacity:0;transition:opacity 0.3s;';
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      requestAnimationFrame(() => toast.style.opacity = '1');
+      setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 1800);
+    }
+    function handleClockClick(scene, cx, cy, w, wallSafe) {
+      let clockX, clockY;
+      if (scene.name === 'office') { clockX = w - 45; clockY = wallSafe + 8; }
+      else if (scene.name === 'hacker') { clockX = w - 30; clockY = wallSafe + 8; }
+      else if (scene.name === 'cafe') { clockX = w - 40; clockY = wallSafe + 8; }
+      else return false;
+      if (Math.hypot(cx - clockX, cy - (clockY + 10)) < 16) {
+        const now = new Date();
+        const h = now.getHours().toString().padStart(2,'0');
+        const m = now.getMinutes().toString().padStart(2,'0');
+        const s = now.getSeconds().toString().padStart(2,'0');
+        showDecoToast('🕐 ' + h + ':' + m + ':' + s);
+        return true;
+      }
+      return false;
+    }
+    function handlePlantClick(cx, cy, w, floorY, h) {
+      const floorH = h - floorY;
+      // Left plant areas
+      if (cx < 30 && cy > floorY + floorH * 0.25 && cy < floorY + floorH * 0.40) {
+        showDecoToast(['🌱 *wiggle*', '🌿 Water me!', '🪴 I\'m growing!'][Math.floor(Math.random()*3)]);
+        return true;
+      }
+      // Right plant areas
+      if (cx > w - 30 && cy > floorY + floorH * 0.60 && cy < floorY + floorH * 0.80) {
+        showDecoToast(['🌵 Don\'t touch!', '🌻 Hello!', '🍀 Lucky!'][Math.floor(Math.random()*3)]);
+        return true;
+      }
+      return false;
+    }
+    function getRandomQuote() {
+      const quotes = [
+        '📚 "Code is poetry"',
+        '📖 "Ship it!"',
+        '📚 "RTFM" - Ancient proverb',
+        '📖 "It works on my machine"',
+        '📚 "Hello, World!"',
+        '📖 "There are only 2 hard things..."',
+      ];
+      return quotes[Math.floor(Math.random() * quotes.length)];
+    }
+    function getRandomIdea() {
+      const ideas = [
+        '💡 TODO: Fix everything',
+        '📝 Sprint #42: Ship it',
+        '💡 Refactor the refactor',
+        '📝 Q3 Goal: ????→Profit',
+        '💡 "Just one more feature"',
+        '📝 Bug ≠ Feature ...or is it?',
+      ];
+      return ideas[Math.floor(Math.random() * ideas.length)];
+    }
+    function getRandomArcade() {
+      const msgs = [
+        '🕹️ INSERT COIN',
+        '👾 HIGH SCORE: 99999',
+        '🎮 GAME OVER',
+        '🕹️ PLAYER 1 READY',
+        '👾 LEVEL UP!',
+        '🎮 CONTINUE? 9...8...7...',
+      ];
+      return msgs[Math.floor(Math.random() * msgs.length)];
+    }
+    function getRandomMenu() {
+      const items = [
+        '☕ Espresso ....... $4',
+        '🧋 Matcha Latte ... $6',
+        '🍰 Cheesecake ..... $7',
+        '🥐 Croissant ...... $3',
+        '🫖 Earl Grey ...... $3',
+        '🍪 Cookie ......... $2',
+      ];
+      return items[Math.floor(Math.random() * items.length)];
+    }
+
     // ── Scene Picker ──
     function initScenePicker() {
       const scenes = app.scenes;
@@ -569,23 +888,100 @@
           updateHUD();
         };
 
-        // Canvas click → open editor for clicked agent
+        // Hook Gateway events to also feed the editor chat panel
+        const origGatewayEvent = app._onGatewayEvent.bind(app);
+        app._onGatewayEvent = (event) => {
+          origGatewayEvent(event);
+          // Route chat events to the editor chat panel
+          if (event?.event === 'chat' && editingSlot) {
+            const sessionKey = event.payload?.sessionKey;
+            if (sessionKey) {
+              const match = sessionKey.match(/^agent:([^:]+):/);
+              const agentId = match ? match[1] : 'main';
+              handleEditorChatEvent(agentId, event.payload);
+            }
+          }
+        };
+
+        // Canvas click → agents, pets, weather, treats, decorations
         document.getElementById('app-canvas').addEventListener('click', (e) => {
-          if (app.mode !== 'live') return;
           const c = document.getElementById('app-canvas');
           const rect = c.getBoundingClientRect();
           const sx = app.width / rect.width;
           const sy = app.height / rect.height;
           const cx = (e.clientX - rect.left) * sx;
           const cy = (e.clientY - rect.top) * sy;
-          for (const slot of app.agents) {
-            if (slot.hitTest(cx, cy)) {
-              openEditor(slot);
+
+          // Live mode: agent click → open editor
+          if (app.mode === 'live') {
+            for (const slot of app.agents) {
+              if (slot.hitTest(cx, cy)) {
+                openEditor(slot);
+                return;
+              }
+            }
+          }
+
+          // Pet click → reaction bubble
+          if (app.petManager && app.petManager.handleClick(cx, cy)) return;
+
+          // Window/weather click — cycle weather
+          if (app.currentScene && app.currentScene.getWindowRect) {
+            const wr = app.currentScene.getWindowRect();
+            if (cx >= wr.x && cx <= wr.x + wr.w && cy >= wr.y && cy <= wr.y + wr.h) {
+              const newWeather = app.currentScene.cycleWeather();
+              showWeatherToast(newWeather);
               return;
             }
           }
-          // Clicked empty space → close editor
-          closeEditor();
+
+          // Decoration clicks
+          if (app.currentScene) {
+            const scene = app.currentScene;
+            const h = app.height, w = app.width;
+            const floorY = Math.round(h * 0.40);
+            const wallSafe = Math.round(h * 0.12);
+
+            // Clock click → show time
+            if (handleClockClick(scene, cx, cy, w, wallSafe)) return;
+
+            // Plant click → wiggle emoji
+            if (handlePlantClick(cx, cy, w, floorY, h)) return;
+
+            // Bookshelf click → random quote
+            if (scene.name === 'office' && cx < 65 && cy >= wallSafe && cy <= wallSafe + 64) {
+              showDecoToast(getRandomQuote());
+              return;
+            }
+
+            // Whiteboard click — office
+            if (scene.name === 'office' && cx >= w*0.15 && cx <= w*0.15+70 && cy >= wallSafe+2 && cy <= wallSafe+46) {
+              showDecoToast(getRandomIdea());
+              return;
+            }
+
+            // Arcade click — hacker
+            if (scene.name === 'hacker' && cx >= w - 28 && cy >= floorY + (h-floorY)*0.30 && cy <= floorY + (h-floorY)*0.30 + 68) {
+              showDecoToast(getRandomArcade());
+              return;
+            }
+
+            // Menu board click — cafe
+            if (scene.name === 'cafe' && cx >= 25 && cx <= 90 && cy >= wallSafe && cy <= wallSafe + 44) {
+              showDecoToast(getRandomMenu());
+              return;
+            }
+          }
+
+          // Floor click (below floorY) → drop treat
+          const floorY = Math.round(app.height * 0.40);
+          if (cy > floorY + 20 && app.petManager && app.petManager.pets.length > 0) {
+            app.petManager.dropTreat(cx, cy);
+            return;
+          }
+
+          // Empty space → close editor
+          if (app.mode === 'live') closeEditor();
         });
 
         initScenePicker();

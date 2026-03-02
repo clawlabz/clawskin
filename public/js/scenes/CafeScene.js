@@ -21,6 +21,23 @@ class CafeScene {
     this.label = '☕ Cozy Café';
     this.workstations = [];
     this.poiList = [];
+
+    // Weather cycling
+    this.weather = 'rain';
+    this.weatherStates = ['rain', 'sunny', 'snow', 'fog'];
+    this.cafeSnow = [];
+    for (let i = 0; i < 25; i++) this.cafeSnow.push({ x: Math.random() * 120, y: Math.random() * 70, speed: 0.02 + Math.random() * 0.02, drift: Math.random() * Math.PI * 2 });
+  }
+
+  cycleWeather() {
+    const idx = this.weatherStates.indexOf(this.weather);
+    this.weather = this.weatherStates[(idx + 1) % this.weatherStates.length];
+    return this.weather;
+  }
+
+  getWindowRect() {
+    const w = this.canvas.width;
+    return { x: w - 150, y: 18, w: 120, h: 70 };
   }
 
   init() {
@@ -149,14 +166,24 @@ class CafeScene {
   update(dt) {
     this.warmGlow += dt * 0.002;
     this.screenFlicker += dt;
-    this.rainDrops.forEach(d => {
-      d.y += d.speed;
-      d.x += 0.5;
-      if (d.y > this.canvas.height * 0.55) {
-        d.y = -d.length;
-        d.x = Math.random() * this.canvas.width;
+    if (this.weather === 'rain') {
+      this.rainDrops.forEach(d => {
+        d.y += d.speed;
+        d.x += 0.5;
+        if (d.y > this.canvas.height * 0.55) {
+          d.y = -d.length;
+          d.x = Math.random() * this.canvas.width;
+        }
+      });
+    }
+    if (this.weather === 'snow') {
+      for (const s of this.cafeSnow) {
+        s.y += s.speed * dt;
+        s.drift += dt * 0.002;
+        s.x += Math.sin(s.drift) * 0.03;
+        if (s.y > 70) { s.y = -3; s.x = Math.random() * 120; }
       }
-    });
+    }
     this.steamParticles.forEach(p => {
       p.life += dt * 0.05;
       if (p.life > p.maxLife) {
@@ -175,42 +202,85 @@ class CafeScene {
 
     if (this.bgCanvas) ctx.drawImage(this.bgCanvas, 0, 0);
 
-    // ── Rain on window ──
+    // ── Window weather rendering ──
     const cwx = w - 150, cwy = 18, cww = 120, cwh = 70;
     ctx.save();
     ctx.beginPath();
     ctx.rect(cwx, cwy, cww, cwh);
     ctx.clip();
-    ctx.strokeStyle = 'rgba(180, 200, 220, 0.5)';
-    ctx.lineWidth = 1;
-    this.rainDrops.forEach(d => {
-      if (d.x > cwx && d.x < cwx + cww) {
-        ctx.globalAlpha = d.opacity;
-        ctx.beginPath();
-        ctx.moveTo(d.x, d.y);
-        ctx.lineTo(d.x + 1, d.y + d.length);
-        ctx.stroke();
-      }
-    });
-    ctx.restore();
 
-    // Rain streaks on window glass
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(cwx, cwy, cww, cwh);
-    ctx.clip();
-    ctx.strokeStyle = 'rgba(200, 220, 240, 0.15)';
-    ctx.lineWidth = 2;
-    for (let i = 0; i < 5; i++) {
-      const sx = cwx + 10 + i * 25;
-      ctx.beginPath();
-      ctx.moveTo(sx, cwy);
-      for (let j = 0; j < 8; j++) {
-        ctx.lineTo(sx + Math.sin(j + i) * 3, cwy + j * 10);
+    if (this.weather === 'rain') {
+      // Rain on window
+      ctx.strokeStyle = 'rgba(180, 200, 220, 0.5)';
+      ctx.lineWidth = 1;
+      this.rainDrops.forEach(d => {
+        if (d.x > cwx && d.x < cwx + cww) {
+          ctx.globalAlpha = d.opacity;
+          ctx.beginPath();
+          ctx.moveTo(d.x, d.y);
+          ctx.lineTo(d.x + 1, d.y + d.length);
+          ctx.stroke();
+        }
+      });
+      ctx.globalAlpha = 1;
+    } else if (this.weather === 'sunny') {
+      // Warm sunny day — amber sky, sun
+      ctx.fillStyle = '#87CEEB';
+      ctx.fillRect(cwx, cwy, cww, cwh);
+      // Sun
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath(); ctx.arc(cwx + 30, cwy + 25, 12, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#FFF8DC';
+      ctx.beginPath(); ctx.arc(cwx + 30, cwy + 25, 9, 0, Math.PI * 2); ctx.fill();
+      // Soft clouds
+      ctx.fillStyle = '#FFF';
+      ctx.fillRect(cwx + 60, cwy + 20, 20, 6); ctx.fillRect(cwx + 63, cwy + 17, 14, 4);
+      ctx.fillRect(cwx + 85, cwy + 35, 15, 5); ctx.fillRect(cwx + 87, cwy + 32, 10, 4);
+    } else if (this.weather === 'snow') {
+      // Snowy — grey sky + snowflakes
+      ctx.fillStyle = '#8899AA';
+      ctx.fillRect(cwx, cwy, cww, cwh);
+      ctx.fillStyle = '#FFF';
+      for (const s of this.cafeSnow) {
+        ctx.globalAlpha = 0.6 + Math.sin(s.drift) * 0.3;
+        ctx.beginPath(); ctx.arc(cwx + s.x, cwy + s.y, 1.5, 0, Math.PI * 2); ctx.fill();
       }
-      ctx.stroke();
+      ctx.globalAlpha = 1;
+      // Snow on sill
+      ctx.fillStyle = '#E8EEF4';
+      ctx.fillRect(cwx, cwy + cwh - 5, cww, 5);
+    } else if (this.weather === 'fog') {
+      // Foggy — milky white layers
+      ctx.fillStyle = '#C8CDD5';
+      ctx.fillRect(cwx, cwy, cww, cwh);
+      for (let i = 0; i < 4; i++) {
+        const fy = cwy + 10 + i * 15;
+        const alpha = 0.15 + Math.sin(this.warmGlow + i) * 0.08;
+        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+        ctx.fillRect(cwx, fy, cww, 10);
+      }
     }
     ctx.restore();
+
+    // Rain streaks on window glass (only when raining)
+    if (this.weather === 'rain') {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(cwx, cwy, cww, cwh);
+      ctx.clip();
+      ctx.strokeStyle = 'rgba(200, 220, 240, 0.15)';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 5; i++) {
+        const sx = cwx + 10 + i * 25;
+        ctx.beginPath();
+        ctx.moveTo(sx, cwy);
+        for (let j = 0; j < 8; j++) {
+          ctx.lineTo(sx + Math.sin(j + i) * 3, cwy + j * 10);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
 
     // ── Warm ambient light ──
     const glowIntensity = 0.08 + Math.sin(this.warmGlow) * 0.02;

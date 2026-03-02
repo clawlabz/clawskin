@@ -1,5 +1,67 @@
 # ClawSkin Changelog
 
+## [0.3.0] - 2026-03-02
+
+### 新增：Agent 聊天面板 + 天气系统 + 宠物互动彩蛋
+
+---
+
+### 新增
+
+- **Agent 聊天面板** (`app.html`, `GatewayClient.js`)
+  - 点击 Agent 打开编辑面板后，下方显示与当前 Agent 的实时对话框
+  - 支持发送消息（`chat.send`）和加载历史（`chat.history`）
+  - Agent 回复实时流式显示（delta → typing 指示器 → final 完整消息）
+  - 每个 Agent 使用独立 sessionKey，互不干扰
+  - 仅 Live 模式显示，Demo 模式自动隐藏
+
+- **天气循环系统** (`OfficeScene.js`, `CafeScene.js`, `HackerScene.js`)
+  - 点击窗户/LED面板循环切换天气状态
+  - Office: ☀️ 晴天 → 🌙 夜晚（月亮+星星） → 🌧️ 雨天（闪电） → ❄️ 雪天
+  - Café: 🌧️ 雨天 → ☀️ 晴天 → ❄️ 雪天 → 🌫️ 雾天
+  - Hacker Den: 💜 霓虹 → 🔴 警报 → 💚 黑客帝国 → 🌑 停电
+  - 天气影响全局氛围（夜晚变暗、闪电全屏闪烁、雪堆积窗台）
+
+- **宠物点击互动** (`Pet.js`, `PetManager.js`)
+  - 点击宠物触发随机反应气泡（每种宠物独立台词库）
+  - 猫: "Purrr~", "💕", "(=^･ω･^=)" / 狗: "Woof!", "*tail wag*", "💖"
+  - 机器人: "BOOP", "⚡" / 鸟: "Tweet!", "🎵" / 仓鼠: "Squeak!", "🥜"
+  - 气泡带淡出动画，互动期间宠物暂停漫游
+
+- **宠物投食系统** (`Pet.js`, `PetManager.js`)
+  - 点击地面空白处掉落随机零食（🍖🦴🐟🥜🌾🍪）
+  - 200px 范围内最近的宠物会跑过来吃掉
+  - 吃到后显示专属反应："TREAT!! 🦴", "*chomp*", "Yummy fish!"
+
+- **装饰品互动彩蛋** (`app.html`)
+  - 点击时钟 → 显示当前时间
+  - 点击书架 → 随机程序员名言
+  - 点击白板 → 随机 Sprint 笔记
+  - 点击街机柜 → "INSERT COIN", "HIGH SCORE: 99999" 等
+  - 点击菜单板 → 随机咖啡馆菜单项
+  - 点击植物 → 颤抖反应 "🌱 *wiggle*", "🌵 Don't touch!"
+
+### 改进
+
+- **编辑面板布局重构** — RANDOM 按钮移至顶部标题栏，移除多余 SAVE 按钮
+- **面板不可滚动** — 捏脸区固定，聊天区占剩余空间并可独立滚动
+- **面板宽度** 280px → 360px，聊天文字 5px → 8px，提升可读性
+- **UI 缩放阈值** — 2K (2560px) 以下不缩放，避免小屏膨胀
+
+### 文件变更
+
+| 文件 | 类型 | 说明 |
+|------|------|------|
+| `public/app.html` | 修改 | 聊天面板 CSS/HTML/JS、天气/宠物/装饰点击处理、UI 缩放修复 |
+| `public/js/app/GatewayClient.js` | 修改 | 新增 `sendChat()` 方法 |
+| `public/js/pets/Pet.js` | 修改 | 新增 hitTest、react、goToTreat、eatTreat、气泡渲染 |
+| `public/js/pets/PetManager.js` | 修改 | 新增 handleClick、dropTreat、投食管理逻辑 |
+| `public/js/scenes/OfficeScene.js` | 修改 | 4 种天气状态渲染 + cycleWeather + getWindowRect |
+| `public/js/scenes/CafeScene.js` | 修改 | 4 种天气状态渲染 + cycleWeather + getWindowRect |
+| `public/js/scenes/HackerScene.js` | 修改 | 4 种氛围模式 + cycleWeather + getWindowRect |
+
+---
+
 ## [0.2.0] - 2026-03-01
 
 ### 重大更新：3/4 RPG 视角 + 移动系统重构 + 独立宠物系统

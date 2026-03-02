@@ -39,7 +39,27 @@ class Pet {
 
     // Sprite generator (shared)
     this.generator = config.generator || new SpriteGenerator();
+
+    // Interaction bubble
+    this.bubble = null; // { text, timer, duration }
   }
+
+  /** Reaction phrases per type */
+  static REACTIONS = {
+    cat:     ['Purrr~', 'Mrrrow!', '*kneads*', 'Meow~', '💕', '(=^･ω･^=)', '*purr purr*', '🐟?'],
+    dog:     ['Woof!', '*tail wag*', 'Bork!', '🐾', '*pant pant*', '💖', 'Play?!', 'Yip!'],
+    robot:   ['BOOP', '01001000!', '*whirrs*', '⚡', 'BEEP', '*click*', 'HELLO'],
+    bird:    ['Tweet!', '*flutter*', 'Chirp~', '🎵', 'Squawk!', '*head tilt*', '🌾?'],
+    hamster: ['Squeak!', '*stuffs cheeks*', '🥜', '*wiggle*', 'Eep!', '*zoom*', '💤→💨'],
+  };
+
+  static TREAT_REACTIONS = {
+    cat:     ['Yummy fish!', '🐟 nom!', '*purrs loudly*', 'More pls~'],
+    dog:     ['TREAT!! 🦴', '*chomp*', 'YESSS!', '*tail 360*'],
+    robot:   ['ENERGY+1 ⚡', 'FUEL OK', '*charging*'],
+    bird:    ['Seeds! 🌾', '*peck peck*', 'Chirp! 🎵'],
+    hamster: ['*stuff stuff* 🥜', 'Nom nom!', '*cheeks full*'],
+  };
 
   /** Pet type metadata */
   static TYPES = {
@@ -86,12 +106,20 @@ class Pet {
       this._flyTime += dt;
     }
 
-    // AI decision timer
-    this.actionTimer += dt;
-    if (this.actionTimer > this.nextActionTime) {
-      this._decideAction(agents, otherPets, sceneBounds);
-      this.actionTimer = 0;
-      this.nextActionTime = 3000 + Math.random() * 8000;
+    // Bubble timer
+    if (this.bubble) {
+      this.bubble.timer += dt;
+      if (this.bubble.timer > this.bubble.duration) this.bubble = null;
+    }
+
+    // AI decision timer (pause during interaction)
+    if (this.state !== 'interacting') {
+      this.actionTimer += dt;
+      if (this.actionTimer > this.nextActionTime) {
+        this._decideAction(agents, otherPets, sceneBounds);
+        this.actionTimer = 0;
+        this.nextActionTime = 3000 + Math.random() * 8000;
+      }
     }
 
     // Movement
@@ -292,6 +320,77 @@ class Pet {
     }
 
     ctx.restore();
+
+    // Interaction bubble (drawn outside ctx.save/restore so no flip)
+    if (this.bubble) {
+      const bx = this.x + drawW / 2;
+      const by = drawY - 6;
+      const text = this.bubble.text;
+      const pad = 5;
+      ctx.font = '7px "Press Start 2P", monospace';
+      const tw = ctx.measureText(text).width;
+      const bw = tw + pad * 2;
+      const bh = 14;
+      const rx = bx - bw / 2;
+      const ry = by - bh;
+      // Bubble fade out in last 500ms
+      const remaining = this.bubble.duration - this.bubble.timer;
+      ctx.globalAlpha = remaining < 500 ? remaining / 500 : 1;
+      // Background
+      ctx.fillStyle = 'rgba(10,10,26,0.85)';
+      ctx.fillRect(rx, ry, bw, bh);
+      ctx.strokeStyle = 'rgba(0,240,255,0.5)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(rx, ry, bw, bh);
+      // Tail
+      ctx.fillStyle = 'rgba(10,10,26,0.85)';
+      ctx.beginPath(); ctx.moveTo(bx - 3, by); ctx.lineTo(bx, by + 4); ctx.lineTo(bx + 3, by); ctx.fill();
+      // Text
+      ctx.fillStyle = '#FFF';
+      ctx.fillText(text, rx + pad, ry + 10);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  /** Hit test for click detection */
+  hitTest(mx, my) {
+    const drawW = 16 * this.scale;
+    const drawH = 16 * this.scale;
+    let drawY = this.y;
+    if (this.moveType === 'fly') {
+      drawY = this.y - 20 + Math.sin(this._flyTime * 0.003) * 8;
+    }
+    return mx >= this.x && mx <= this.x + drawW
+        && my >= drawY && my <= drawY + drawH;
+  }
+
+  /** React to being clicked */
+  react() {
+    const pool = Pet.REACTIONS[this.type] || ['!'];
+    const text = pool[Math.floor(Math.random() * pool.length)];
+    this.bubble = { text, timer: 0, duration: 2500 };
+    this.state = 'interacting';
+    this.target = null;
+    setTimeout(() => { if (this.state === 'interacting') this.state = 'idle'; }, 2500);
+  }
+
+  /** Move toward a treat and eat it */
+  goToTreat(tx, ty) {
+    this.target = { x: tx, y: ty };
+    this.state = 'moving';
+    this.interactLabel = 'treat';
+    this._treatTarget = { x: tx, y: ty };
+  }
+
+  /** Called when pet reaches the treat */
+  eatTreat() {
+    const pool = Pet.TREAT_REACTIONS[this.type] || ['Yum!'];
+    const text = pool[Math.floor(Math.random() * pool.length)];
+    this.bubble = { text, timer: 0, duration: 3000 };
+    this.state = 'interacting';
+    this.target = null;
+    this._treatTarget = null;
+    setTimeout(() => { if (this.state === 'interacting') this.state = 'idle'; }, 3000);
   }
 
   /** Y value for depth sorting */
