@@ -53,16 +53,6 @@ Opens at `http://localhost:3000` with a live demo. No build step, no config.
 
 To connect to your AI agent, click **⚡ CONNECT** and enter your [OpenClaw Gateway](https://github.com/anthropics/openclaw) URL.
 
-## 🖼️ Gallery
-
-| Office (Sunny) | Office (Night) | Hacker Den | Cozy Café |
-|:-:|:-:|:-:|:-:|
-| ![](docs/images/office-sunny.png) | ![](docs/images/office-night.png) | ![](docs/images/hacker.png) | ![](docs/images/cafe.png) |
-
-| Pet Reactions | Weather Cycling | Agent Chat |
-|:-:|:-:|:-:|
-| ![](docs/images/pet-react.png) | ![](docs/images/weather.png) | ![](docs/images/chat.png) |
-
 ## 🔗 Part of the Claw Ecosystem
 
 ```
