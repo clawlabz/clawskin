@@ -44,11 +44,16 @@ function getLocalGatewayConfig() {
       const config = JSON.parse(raw);
       const gw = config.gateway || {};
       const port = gw.port || 18789;
+      const agentsList = (config.agents?.list || []).map(a => ({
+        id: a.id,
+        name: a.identity?.name || a.name || a.id,
+      }));
       return {
         gatewayUrl: `ws://localhost:${port}`,
         // Safe to expose token on localhost — serve.cjs binds to 127.0.0.1 by default.
         // The token never leaves the local machine.
         token: (gw.auth && gw.auth.token) || '',
+        agents: agentsList,
       };
     } catch { continue; }
   }

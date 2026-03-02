@@ -170,15 +170,16 @@ class ClawSkinApp {
         const config = await res.json();
         if (config?.gatewayUrl) {
           const saved = this.settings.load();
+          const token = config.token || saved.token || '';
+          this._configAgents = config.agents || [];
           this.settings.update({
             gatewayUrl: config.gatewayUrl,
+            token: token,
             autoConnect: true,
           });
           if (window._connPanel) {
             window._connPanel.render(this.settings.load());
           }
-          // Use token from local config, fall back to previously saved token
-          const token = config.token || saved.token || '';
           this.gateway.connect(config.gatewayUrl, token);
           return;
         }
@@ -266,55 +267,62 @@ class ClawSkinApp {
   // ──── Multi-Agent Management ────
 
   async _discoverAgents() {
+    // Start with agents from config file (all agents, regardless of activity)
+    const configAgents = this._configAgents || [];
+    const knownAgentIds = new Set();
+
+    // Phase 1: Create slots for all agents from config file
+    for (const agent of configAgents) {
+      if (!agent.id) continue;
+      knownAgentIds.add(agent.id);
+      this._addAgent({
+        agentId: agent.id,
+        name: agent.name || agent.id,
+        label: agent.name || agent.id,
+        sessionKeys: [],
+      });
+    }
+
+    // Phase 2: Discover active sessions from Gateway and attach to slots
     try {
       const result = await this.gateway.getSessionsList({ activeMinutes: 1440 });
       const sessions = result?.sessions || result || [];
 
-      if (!Array.isArray(sessions) || sessions.length === 0) {
-        this._addAgent({ agentId: 'main', label: 'Main Agent', sessionKeys: ['main'] });
-        return;
-      }
+      if (Array.isArray(sessions)) {
+        for (const session of sessions) {
+          const key = session.key || session.sessionKey;
+          if (!key) continue;
 
-      // Group sessions by agentId
-      // Session keys look like: "agent:main:main", "agent:ifig:discord:channel:123", "agent:xhs:main"
-      // The agentId is either session.agentId or extracted from the key pattern "agent:<agentId>:..."
-      const agentMap = new Map();
+          let agentId = session.agentId || null;
+          if (!agentId) {
+            const match = key.match(/^agent:([^:]+):/);
+            agentId = match ? match[1] : 'main';
+          }
 
-      for (const session of sessions) {
-        const key = session.key || session.sessionKey;
-        if (!key) continue;
-
-        // Determine agentId: prefer session.agentId, else parse from key
-        let agentId = session.agentId || null;
-        if (!agentId) {
-          const match = key.match(/^agent:([^:]+):/);
-          agentId = match ? match[1] : 'main';
+          // If this agent wasn't in config, create a slot for it
+          if (!knownAgentIds.has(agentId)) {
+            knownAgentIds.add(agentId);
+            this._addAgent({
+              agentId,
+              label: session.label || agentId,
+              sessionKeys: [key],
+            });
+          } else {
+            // Attach session key to existing slot
+            const slot = this.agents.find(a => a.agentId === agentId);
+            if (slot && !slot.sessionKeys.includes(key)) {
+              slot.sessionKeys.push(key);
+              slot.stateMapper.addSessionKey(key);
+            }
+          }
         }
-
-        if (!agentMap.has(agentId)) {
-          agentMap.set(agentId, {
-            agentId,
-            label: session.label || agentId,
-            sessionKeys: [],
-          });
-        }
-        agentMap.get(agentId).sessionKeys.push(key);
-      }
-
-      // Create one AgentSlot per unique agentId
-      for (const [agentId, info] of agentMap) {
-        this._addAgent({
-          agentId,
-          label: info.label,
-          sessionKeys: info.sessionKeys,
-        });
-      }
-
-      if (this.agents.length === 0) {
-        this._addAgent({ agentId: 'main', label: 'Main Agent', sessionKeys: ['main'] });
       }
     } catch (e) {
       console.warn('[ClawSkinApp] session discovery failed:', e);
+    }
+
+    // Phase 3: Fallback — ensure at least one agent exists
+    if (this.agents.length === 0) {
       this._addAgent({ agentId: 'main', label: 'Main Agent', sessionKeys: ['main'] });
     }
 
