@@ -43,13 +43,23 @@ When your agent thinks, the character scratches its head. When it writes code, t
 
 ## 🚀 Quick Start
 
+**One command, zero install:**
+
+```bash
+npx @clawlabz/clawskin
+```
+
+That's it. Opens at `http://localhost:3000` with a live demo.
+
+<details>
+<summary>Or clone the repo</summary>
+
 ```bash
 git clone https://github.com/clawlabz/clawskin.git
 cd clawskin
 npm start
 ```
-
-Opens at `http://localhost:3000` with a live demo. No build step, no config.
+</details>
 
 To connect to your AI agent, click **⚡ CONNECT** and enter your [OpenClaw Gateway](https://github.com/anthropics/openclaw) URL.
 
