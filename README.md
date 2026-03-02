@@ -1,27 +1,45 @@
 # 🎨 ClawSkin
 
-**Pixel Agent Skin Engine** — Give your AI assistant a face, an office, and a daily life.
+**Give your AI agent a pixel life.**
 
-A pixel character engine that visualizes AI agent states in real-time. Pure Canvas 2D, zero dependencies, zero build tools.
+ClawSkin turns your AI assistant into a living pixel character — sitting at a desk, typing code, sipping coffee, petting a cat. Watch your agent work in real-time, or just enjoy the cozy vibes.
+
+<p align="center">
+  <img src="docs/images/screenshot.png" alt="ClawSkin — Pixel agents working in an office" width="720">
+</p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Canvas_2D-Procedural-blue" alt="Canvas 2D">
-  <img src="https://img.shields.io/badge/JavaScript-ES6+-yellow?logo=javascript&logoColor=white" alt="JavaScript">
   <img src="https://img.shields.io/badge/Dependencies-0-brightgreen" alt="Zero Dependencies">
   <img src="https://img.shields.io/badge/Build-None-brightgreen" alt="Zero Build">
   <img src="https://img.shields.io/github/license/clawlabz/clawskin" alt="License">
 </p>
 
-## ✨ Features
+---
 
-- 🧑‍🎨 **Character Customization** — 5 skin tones × 5 hairstyles × 5 outfits × 4 accessories × 5 pets = 2,500+ combinations
-- 🏠 **3 Scenes** — Office, Hacker Den, Cozy Café (each with ambient animations and particles)
-- 🎬 **8 State Animations** — idle, thinking, typing, executing, browsing, error, wave, sleeping
-- 💬 **Dialogue Bubbles** — Typewriter effect with emoji support
-- 👥 **Multi-Agent** — Display multiple AI agents simultaneously with independent states
-- 🐾 **Pixel Pets** — Cats, dogs, robots, birds, hamsters with autonomous AI behavior
-- 🎮 **Demo Mode** — Runs standalone without any backend connection
-- 📦 **Zero Dependencies** — Pure static files, just Node.js to serve
+## What is this?
+
+A pixel companion that mirrors what your AI agent is doing — **in real-time**.
+
+When your agent thinks, the character scratches its head. When it writes code, the character types furiously. When it browses the web, it stares at the screen. When it sleeps... it sleeps. 💤
+
+> Zero dependencies. Zero build tools. Just pixels.
+
+## ✨ Highlights
+
+🧑‍🎨 **Customize Everything** — Mix skin tones, hairstyles, outfits, and accessories. 2,500+ unique looks.
+
+🏠 **3 Cozy Scenes** — Office, Hacker Den, and Café. Each with ambient weather, particles, and hidden easter eggs.
+
+🐾 **Pixel Pets** — Cats, dogs, birds, hamsters, and robots that wander around, nap, and react when you click them.
+
+💬 **Chat with Your Agent** — Click an agent to open a chat panel. Talk to them directly from the pixel world.
+
+🌦️ **Weather System** — Click the window to cycle through sunny, rainy, snowy, and night modes.
+
+🎯 **Easter Eggs Everywhere** — Click the clock, bookshelf, plants, arcade machine... everything has a surprise.
+
+🍖 **Feed Your Pets** — Click the floor to drop a treat. Watch the nearest pet run over and munch it.
 
 ## 🚀 Quick Start
 
@@ -29,106 +47,44 @@ A pixel character engine that visualizes AI agent states in real-time. Pure Canv
 git clone https://github.com/clawlabz/clawskin.git
 cd clawskin
 npm start
-# → http://localhost:3000
 ```
 
-Opens the ClawSkin app and auto-connects to your local OpenClaw Gateway (`ws://localhost:18789`).
+Opens at `http://localhost:3000` with a live demo. No build step, no config.
 
-> **Why `npm start` instead of opening the HTML directly?**
-> Browsers block WebSocket connections from `file://` pages due to origin restrictions.
-> The built-in server runs on `http://localhost` which Gateway accepts. Zero dependencies — just Node.js.
+To connect to your AI agent, click **⚡ CONNECT** and enter your [OpenClaw Gateway](https://github.com/anthropics/openclaw) URL.
 
-### CLI Options
+## 🖼️ Gallery
 
-```bash
-npm start                    # Default: localhost:3000, opens browser
-npm start -- --no-open       # Don't open browser
-npm start -- --port 8080     # Custom port
-npm start -- --host 0.0.0.0  # Expose to network (see Security below)
-```
+| Office (Sunny) | Office (Night) | Hacker Den | Cozy Café |
+|:-:|:-:|:-:|:-:|
+| ![](docs/images/office-sunny.png) | ![](docs/images/office-night.png) | ![](docs/images/hacker.png) | ![](docs/images/cafe.png) |
 
-## 🏗️ Architecture
-
-```
-clawSkin/
-├── public/
-│   ├── index.html              # Landing page (demo + customization)
-│   ├── app.html                # Full-screen app (main product)
-│   ├── css/
-│   └── js/
-│       ├── app/                # ClawSkinApp, GatewayClient, Settings
-│       ├── scenes/             # Office / Hacker / Café scenes
-│       ├── character/          # Sprite rendering + animations
-│       ├── sprites/            # Procedural sprite generator
-│       ├── pets/               # Pet entity + manager
-│       ├── state/              # Agent state sync + demo mode
-│       └── ui/                 # Character editor + scene picker
-├── serve.cjs                   # Zero-dependency HTTP server
-└── docs/
-    └── ARCHITECTURE.md         # Detailed architecture doc
-```
-
-### Character Layer System
-
-```
-Layer 5: Accessory  — glasses / hat / headphones
-Layer 4: Hair       — 5 styles with color variants
-Layer 3: Outfit     — hoodie / suit / lab coat / ...
-Layer 2: Expression — happy / thinking / confused / sleepy
-Layer 1: Body       — base 32×32 pixel humanoid + skin tone
-Layer 0: Shadow
-```
-
-### Agent State Mapping
-
-| Agent State | Pixel Character Behavior |
-|-------------|-------------------------|
-| `idle`      | Sitting, drinking coffee, petting cat |
-| `thinking`  | Thought bubble "..." |
-| `writing`   | Fast typing, screen flickers |
-| `executing` | Walks to server rack |
-| `browsing`  | Staring at screen, occasional clicks |
-| `error`     | ❌ above head, frustrated expression |
-| `heartbeat` | Waves at window |
-| `sleeping`  | Head on desk 💤 |
-
-## 🔒 Security
-
-ClawSkin is designed to run locally as a companion UI. Here are the security considerations:
-
-### Local server (`serve.cjs`)
-
-- **Binds to `127.0.0.1` by default** — only accessible from your machine. Use `--host 0.0.0.0` explicitly if you need network access.
-- **`/api/config` endpoint** — returns the Gateway URL detected from `~/.openclaw/openclaw.json` for auto-connect convenience. **Auth tokens are never served** by this endpoint; users must enter tokens manually in the UI.
-- **Security headers** — CSP, X-Content-Type-Options, X-Frame-Options, and Referrer-Policy are set on all responses.
-
-### Browser storage
-
-- **Settings** (Gateway URL, scene choice, character config) are persisted in `localStorage`.
-- **Gateway auth token** is stored in `localStorage` after the user enters it manually. This is standard browser behavior (same as any web app with "remember me"). The token never leaves the browser.
-- **Device identity** — An Ed25519 keypair is generated and stored in `localStorage` for Gateway device pairing. The private key is stored as base64url in plaintext. This is a known tradeoff: `localStorage` is accessible to any JavaScript on the same origin. For a locally-run pixel companion, this is acceptable. If you need stronger protection, use the browser in a dedicated profile.
-
-### WebSocket connection
-
-- ClawSkin requests **read-only scopes** (`operator.read`, `operator.events`) from the Gateway — it does not request admin privileges.
-- For remote connections, use `wss://` (e.g. via Tailscale Serve) to encrypt traffic.
+| Pet Reactions | Weather Cycling | Agent Chat |
+|:-:|:-:|:-:|
+| ![](docs/images/pet-react.png) | ![](docs/images/weather.png) | ![](docs/images/chat.png) |
 
 ## 🔗 Part of the Claw Ecosystem
 
 ```
-ClawSkin (you are here)  →  ClawArena  →  ClawGenesis
-   Free / visual hook        Light game      Deep simulation
+ClawSkin          →  ClawArena        →  ClawGenesis
+Pixel companion      AI battle game      AI civilization
 ```
 
-ClawSkin characters can be reused as avatars in [ClawArena](https://github.com/clawlabz/clawarena) spectating scenes.
+ClawSkin characters can be reused as avatars across the Claw ecosystem.
+
+## 📖 Documentation
+
+- [Technical Architecture](docs/TECHNICAL.md) — render pipeline, state mapping, Gateway protocol
+- [Architecture Overview](docs/ARCHITECTURE.md) — system design
+- [Changelog](CHANGELOG.md) — version history
+- [Roadmap](docs/ROADMAP.md) — what's next
 
 ## 🤝 Contributing
 
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions welcome! Ideas:
 
-Ideas for contributions:
 - 🎨 New scenes (bedroom, spaceship, garden...)
-- 👕 New outfit/hairstyle/accessory sprites
+- 👕 New outfits, hairstyles, accessories
 - 🐾 New pet companions
 - 🌐 i18n support
 
