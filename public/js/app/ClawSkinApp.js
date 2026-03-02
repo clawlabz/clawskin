@@ -168,6 +168,7 @@ class ClawSkinApp {
       const res = await fetch('/api/config', { signal: AbortSignal.timeout(2000) });
       if (res.ok) {
         const config = await res.json();
+        console.log('[ClawSkin] /api/config →', JSON.stringify(config));
         if (config?.gatewayUrl) {
           const saved = this.settings.load();
           const token = config.token || saved.token || '';

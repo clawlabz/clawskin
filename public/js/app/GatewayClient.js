@@ -46,8 +46,15 @@ class GatewayClient {
   }
 
   _setState(state, detail) {
-    if (state === 'error') this.lastError = detail || 'Unknown error';
-    else if (state === 'connected') this.lastError = null;
+    if (state === 'error') {
+      this.lastError = detail || 'Unknown error';
+      console.warn('[GatewayClient]', state, detail || '');
+    } else if (state === 'connected') {
+      this.lastError = null;
+      console.log('[GatewayClient] connected');
+    } else {
+      console.log('[GatewayClient]', state, detail || '');
+    }
     if (this.onStateChange) this.onStateChange(state, detail);
   }
 
@@ -200,10 +207,9 @@ class GatewayClient {
       params.auth.token = this.token;
     }
 
-    // Device identity — Gateway requires Ed25519 signed device identity.
-    // The signed message MUST use the same role/scopes/clientId/clientMode
-    // as the connect params, because Gateway reconstructs the message to verify.
-    if (typeof DeviceIdentity !== 'undefined') {
+    // Device identity — only needed for clients that require Ed25519 pairing
+    // (e.g. webchat-ui, control-ui). The 'webchat' client type works without it.
+    if (typeof DeviceIdentity !== 'undefined' && this.clientId !== 'webchat') {
       try {
         const identity = await DeviceIdentity.getOrCreate();
         const device = await DeviceIdentity.sign(identity, {
