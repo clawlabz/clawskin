@@ -177,8 +177,9 @@ class ClawSkinApp {
           if (window._connPanel) {
             window._connPanel.render(this.settings.load());
           }
-          // Use previously saved token if available; never read token from /api/config
-          this.gateway.connect(config.gatewayUrl, saved.token || '');
+          // Use token from local config, fall back to previously saved token
+          const token = config.token || saved.token || '';
+          this.gateway.connect(config.gatewayUrl, token);
           return;
         }
       }

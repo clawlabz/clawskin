@@ -46,9 +46,9 @@ function getLocalGatewayConfig() {
       const port = gw.port || 18789;
       return {
         gatewayUrl: `ws://localhost:${port}`,
-        // Only expose that auth is token-based, never send the actual token.
-        // The user must enter the token manually in the UI.
-        hasAuth: !!(gw.auth && gw.auth.mode === 'token'),
+        // Safe to expose token on localhost — serve.cjs binds to 127.0.0.1 by default.
+        // The token never leaves the local machine.
+        token: (gw.auth && gw.auth.token) || '',
       };
     } catch { continue; }
   }
