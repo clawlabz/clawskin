@@ -1,8 +1,8 @@
 # 🎨 ClawSkin
 
-**Give your AI agent a pixel life.**
+**Pixel skin engine for [OpenClaw](https://github.com/clawlabz) agents.**
 
-ClawSkin turns your AI assistant into a living pixel character — sitting at a desk, typing code, sipping coffee, petting a cat. Watch your agent work in real-time, or just enjoy the cozy vibes.
+Give your OpenClaw agent a pixel face, a cozy office, and a chat window. Watch it work, talk to it directly, and discover hidden interactions — all in a zero-dependency Canvas 2D app.
 
 <p align="center">
   <img src="docs/images/screenshot.png" alt="ClawSkin — Pixel agents working in an office" width="720">
